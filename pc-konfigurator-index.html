@@ -1,0 +1,1824 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PC Konfigurátor UX</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: workbench — parts catalog | antistatic mat with the open case | build sheet */
+:root{
+  /* single committed look: blue-black workshop */
+  --bg:#0b1628; --panel:rgba(26,43,72,.85); --panel-2:#1f3150; --ink:#eaf1fa; --muted:#a2b5cf; --line:#2f4670;
+  --accent:#5b8cff; --accent-ink:#ffffff; --accent-soft:#1a2b4f;
+  --ok:#5fcf8f; --ok-soft:#12301f; --warn:#e9b85e; --warn-soft:#33270f; --err:#f2786d; --err-soft:#3a1a18;
+  --mat:#3f5268; --mat-grid:rgba(200,220,255,.08); --mat-ink:rgba(255,255,255,.78);
+  --slot-line:rgba(255,255,255,.55); --slot-fill:rgba(255,255,255,.07); --slot-text:rgba(255,255,255,.88); --hot:#ffd166;
+  --thumb:#16243a; --danger:#e5484d; --danger-ink:#ffffff;
+  --f-display:'Chakra Petch','Segoe UI',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0}
+body{background-color:var(--bg);background-image:radial-gradient(900px 520px at 12% -8%,rgba(70,124,232,.42),transparent 70%),radial-gradient(800px 600px at 95% 110%,rgba(46,94,190,.34),transparent 70%),linear-gradient(165deg,#17325f 0%,#0f2143 45%,#081226 100%);background-attachment:fixed;color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;
+  display:flex;flex-direction:column;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand totals";align-items:center;gap:4px 20px;padding-block:0 12px}
+.brand{grid-area:brand;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;min-width:0}
+.brand h1{font-family:var(--f-display);font-weight:700;font-size:38px;letter-spacing:.03em;margin:0;line-height:.95;padding:0 4px 2px}
+.brand h1 .glow{display:inline-block;transform:scaleX(1.08);transform-origin:center}
+/* neon chrome title: cyan-to-magenta fill with a bright split line, light rim, dark extrusion and soft glow */
+.brand h1 .glow{
+  background:linear-gradient(180deg,#5f89f5 0%,#4a72e4 50%,#7b67de 50%,#6352c4 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 1px 0 #4a3ca6) drop-shadow(0 1px 0 #43369a) drop-shadow(0 1px 0 #3d318a)}
+.brand h1 span:not(.glow){color:inherit}
+.brand p{margin:0;color:var(--muted);font-size:15.5px;line-height:1.2}
+.totals{grid-area:totals;justify-self:end;max-width:380px;display:flex;align-items:center;gap:3px 14px;flex-wrap:wrap;justify-content:flex-end}
+.stat{display:flex;flex-direction:column;gap:0}
+.stat small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stat b{font-family:var(--f-display);font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;font-size:12.5px;font-weight:600}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.err{background:var(--err-soft);color:var(--err)}
+.hbtns{display:flex;gap:6px;flex-basis:100%;justify-content:flex-end}
+.hbtns .btn{padding:3px 10px;font-size:12px}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:500}
+.btn:hover{filter:brightness(1.1)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+#bClear{background:#ffffff;color:#14181f;border-color:#ffffff}
+#bClear:hover{background:#e9edf3;filter:none}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:var(--danger-ink);font-weight:600}
+.btn.danger:hover{filter:brightness(1.1)}
+.segs{flex:none;display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.seg{display:flex;flex-wrap:wrap;gap:4px;padding:3px;background:#2e3f68;border:1px solid #4a5f92;border-radius:9px}
+.seg button{flex:1 0 auto;white-space:nowrap;border:0;background:none;border-radius:6px;padding:5px 5px;font-size:12px;font-weight:500;color:#dbe4f5;display:flex;justify-content:center;gap:5px}
+.seg button span{font-variant-numeric:tabular-nums;opacity:.7}
+.seg button:hover{background:rgba(255,255,255,.08)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.empty-list{padding:18px 14px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:13px;text-align:center}
+
+main.app{flex:1;min-height:0;display:grid;gap:0 16px;padding-block:12px 16px;
+  grid-template-columns:minmax(330px,380px) minmax(0,1fr) minmax(280px,330px);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"cat head head" "cat stage sum"}
+header.top{grid-area:head}
+.col{min-height:0;min-width:0;display:flex;flex-direction:column}
+.cat{grid-area:cat} .stagecol{grid-area:stage} .sum{grid-area:sum}
+
+/* catalog */
+.tabs{flex:none;display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding:3px 3px 10px;scrollbar-width:thin}
+.cathead,.segs{flex:none}
+.tab{flex:none;border:1px solid #5a4db0;background:#3d318a;color:#fff;border-radius:8px;padding:12px 14px;font-size:13px;font-weight:500;line-height:1.2;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tab .dot{flex:none}
+.tab:hover{filter:brightness(1.1)}
+.tab .dot{width:7px;height:7px;border-radius:50%;border:1.5px solid var(--muted)}
+.tab .dot.on{background:var(--ok);border-color:var(--ok)}
+.tab[aria-selected="true"]{background:#3d318a;color:#fff;border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.35);font-weight:600}
+.tab[aria-selected="true"] .dot{border-color:#fff}
+.tab .dot{border-color:rgba(255,255,255,.85)}
+.cathead{display:flex;justify-content:space-between;align-items:baseline;margin:2px 2px 8px}
+.cathead h2{font-family:var(--f-display);font-size:17px;font-weight:600;margin:0}
+.cathead span{font-size:12px;color:var(--muted)}
+.list{overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:2px;min-height:0}
+.card{display:grid;grid-template-columns:108px minmax(0,1fr);gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;cursor:grab;transition:border-color .15s, transform .15s}
+.card:hover{border-color:var(--accent)}
+/* lighter blue cards in the catalog */
+.card{background:linear-gradient(180deg,#3563a8,#2c5596);border-color:rgba(170,200,255,.35)}
+.card:hover{border-color:#cfe0ff}
+.card .code,.card .chips li{color:#d7e4f8}
+.card .chips li{background:rgba(255,255,255,.14)}
+.card .sold{color:#d9e7ff}
+.card .rank{color:rgba(255,255,255,.85)}
+.card .btn.primary{background:#1550d8;border-color:rgba(255,255,255,.55)}
+.card .btn:not(.primary):not(.danger){background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:#fff}
+.card:active{cursor:grabbing}
+.card.is-in{border-color:var(--ok);box-shadow:inset 0 0 0 1px var(--ok)}
+.thumb{position:relative;background:var(--thumb);border-radius:7px;height:84px;display:grid;place-items:center;padding:6px}
+.rank{position:absolute;left:5px;top:4px;font-family:var(--f-display);font-weight:700;font-size:12px;color:var(--muted)}
+.sold{font-size:11.5px;color:var(--accent);font-weight:500}
+.thumb svg{width:100%;height:100%;display:block}
+.info{min-width:0;display:flex;flex-direction:column;gap:4px}
+.info h3{margin:0;font-size:14px;font-weight:600;line-height:1.25;text-wrap:balance}
+.code{font-family:var(--f-mono);font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+.chips{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+.chips li{font-size:11px;padding:1px 6px;border-radius:4px;background:var(--panel-2);color:var(--muted)}
+.row{display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap}
+.price{font-family:var(--f-display);font-weight:600;font-size:15px;font-variant-numeric:tabular-nums;margin-right:auto}
+.flag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px}
+.flag.err{background:var(--err-soft);color:var(--err)} .flag.warn{background:var(--warn-soft);color:var(--warn)} .flag.in{background:var(--ok-soft);color:var(--ok)}
+.card .btn{padding:4px 12px}
+
+/* stage */
+.stage{position:relative;flex:1;min-height:0;border-radius:14px;border:1px solid rgba(180,205,240,.18);background-color:var(--mat);
+  background-image:linear-gradient(var(--mat-grid) 1px,transparent 1px),linear-gradient(90deg,var(--mat-grid) 1px,transparent 1px);
+  background-size:24px 24px;overflow:hidden;transition:box-shadow .2s}
+.stage.drag{box-shadow:inset 0 0 0 3px var(--hot)}
+.stage > canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.stage .mathint{position:absolute;left:14px;right:14px;bottom:10px;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+h1 .ttl{position:relative;display:inline-block}
+h1 .beta{position:absolute;left:100%;top:.55em;margin-left:.9em;white-space:nowrap;line-height:1;padding:.2em .55em;border-radius:999px;font-family:"IBM Plex Sans",sans-serif;font-size:.3em;font-weight:600;letter-spacing:.08em;text-transform:uppercase;vertical-align:baseline;color:#ffcf8a;background:rgba(255,154,46,.14);border:1px solid rgba(255,154,46,.55);-webkit-text-fill-color:#ffcf8a}
+.zbox{position:absolute;left:10px;top:10px;display:flex;align-items:center;gap:5px;z-index:2;font-family:"Share Tech Mono",ui-monospace,monospace;letter-spacing:.06em}
+.zval,.zreset,.zstep{font:inherit;font-size:11px;line-height:1;padding:5px 7px;border-radius:5px;font-variant-numeric:tabular-nums;text-transform:uppercase}
+.zstep{cursor:pointer;min-width:26px;font-size:14px;font-weight:700;background:#06120b;border:1px solid #1f5a34;color:#3dff7d;text-shadow:0 0 5px rgba(61,255,125,.35)}
+.zstep:hover{background:#0c2a17;border-color:#3dff7d}
+.zval{min-width:15ch;text-align:right;background:#06120b;border:1px solid #1f5a34;color:#3dff7d;text-shadow:0 0 5px rgba(61,255,125,.35);box-shadow:inset 0 0 8px rgba(0,0,0,.6)}
+.btn.tower{background:#2a2350;color:#d9d2ff;border:1px solid #6b5bd6}
+.btn.tower:hover{background:#3a3070}
+.btn.pwr{background:#123a24;color:#7dffa8;border:1px solid #2f8f55}
+.btn.pwr:hover{background:#185030}
+.btn.pwr.on{background:#2fae62;color:#04140a;border-color:#7dffa8;box-shadow:0 0 12px rgba(61,255,125,.35)}
+.zreset{cursor:pointer;background:#1a0d02;border:1px solid #8a4a10;color:#ff9a2e;text-shadow:0 0 5px rgba(255,154,46,.35)}
+.zreset:hover:not(:disabled){background:#2e1704;border-color:#ff9a2e}
+.zreset:disabled{color:#8a5320;border-color:#4d2a08;text-shadow:none;cursor:default}
+.monchip{position:absolute;right:12px;top:12px;z-index:2;width:162px;padding:9px 9px 8px;border-radius:12px;background:var(--thumb);border:1px solid rgba(160,190,230,.25);box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font:inherit}
+.monchip[hidden]{display:none}
+.monchip svg{width:100%;height:108px}
+.monchip .mname{font-size:11.5px;line-height:1.3;font-weight:600;color:#e3ecf8;text-align:center}
+.monchip:hover{border-color:#8fb4ff}
+.b3bar{position:absolute;right:12px;top:12px;display:flex;align-items:center;gap:12px}
+.stage:has(.monchip:not([hidden])) .b3bar{right:186px}  /* the case button moves left of the monitor picture */
+.b3pow{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--mat-ink)}
+.b3pow i{width:9px;height:9px;border-radius:50%;background:#465670}
+.b3pow.on{color:var(--ok)}
+.b3pow.on i{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+[hidden]{display:none!important}
+.mathint{align-self:stretch;font-size:12.5px;color:var(--mat-ink)}
+@media (max-width:860px){ .ux .uxhint{display:none} }
+.ghost{fill:var(--slot-fill);stroke:var(--slot-line);stroke-width:1.5;stroke-dasharray:6 5}
+.ghost-t{fill:var(--slot-text);font-family:var(--f-body);font-size:13px;font-weight:500;pointer-events:none}
+.zone{cursor:pointer}
+.zone-hit{fill:transparent;stroke:none}
+.zone.filled{cursor:grab;touch-action:none}
+.zone.lifted{opacity:.25}
+.drag-ghost{position:fixed;left:0;top:0;z-index:50;pointer-events:none;filter:drop-shadow(0 12px 18px rgba(0,0,0,.4))}
+.drag-ghost svg{width:100%;height:100%;display:block}
+.drag-ghost .tag{position:absolute;left:50%;top:-30px;transform:translateX(-50%);background:var(--danger);color:var(--danger-ink);font-size:12px;font-weight:600;padding:3px 9px;border-radius:6px;white-space:nowrap;display:none}
+.drag-ghost.out .tag{display:block}
+.drag-ghost.out svg{opacity:.8}
+body.dragging-part,body.dragging-part *{cursor:grabbing!important;user-select:none}
+.zone:hover .zone-hit,.zone:focus-visible .zone-hit{stroke:rgba(255,255,255,.6);stroke-width:2}
+.zone.hot .zone-hit{stroke:var(--hot);stroke-width:4;stroke-dasharray:10 6;animation:march 1s linear infinite}
+.zone.hot .ghost{fill:rgba(255,209,102,.16)}
+.zone.deny .zone-hit{stroke:var(--danger);stroke-width:4;stroke-dasharray:10 6}
+.stage.deny{box-shadow:inset 0 0 0 3px var(--danger)}
+.toast{position:fixed;left:50%;top:96px;transform:translateX(-50%);z-index:5;background:var(--danger);color:var(--danger-ink);padding:8px 14px;border-radius:8px;font-weight:600;font-size:13px;width:max-content;max-width:calc(100% - 32px);text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.card.is-blocked .thumb{opacity:.5}
+.btn:disabled{opacity:.65;cursor:not-allowed}
+.btn:disabled:hover{border-color:var(--line)}
+.zone:focus{outline:none}
+.pop{animation:pop .5s cubic-bezier(.2,1.4,.4,1);transform-box:fill-box;transform-origin:center}
+@keyframes pop{from{transform:translateY(-14px) scale(.96);opacity:.3}to{transform:none;opacity:1}}
+@keyframes march{to{stroke-dashoffset:-32}}
+
+/* summary */
+.sheet{background:var(--panel);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0;overflow-y:auto}
+.sec{padding:8px 14px;border-bottom:1px solid var(--line)}
+.sec:last-child{border-bottom:0}
+.sec h2{font-family:var(--f-display);font-size:15px;font-weight:600;margin:0 0 4px;display:flex;justify-content:space-between;align-items:baseline}
+.sec h2 small{font-family:var(--f-body);font-weight:400;font-size:12px;color:var(--muted)}
+.parts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.parts li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 8px;align-items:center;padding:2px 0;border-top:1px dashed var(--line)}
+.parts li:first-child{border-top:0}
+.parts .lbl{grid-column:1/-1;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.parts .lbl.done{color:var(--ok);font-weight:600}
+.parts .nm{font-size:13px;font-weight:500;min-width:0;overflow-wrap:anywhere}
+.parts .nm .code{display:block}
+.parts .pr{font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap}
+.parts .empty{color:var(--muted);font-style:italic;font-size:13px}
+.x{border:0;background:none;color:var(--muted);width:26px;height:26px;border-radius:6px;font-size:16px;line-height:1}
+.x:hover{background:var(--err-soft);color:var(--err)}
+.link{border:0;background:none;color:var(--accent);font-size:12.5px;font-weight:500;padding:2px 4px}
+.sumtotal{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;padding-top:6px;border-top:2px solid var(--ink)}
+.sumtotal b{font-family:var(--f-display);font-size:20px;font-variant-numeric:tabular-nums}
+.meter{height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden;margin:6px 0 3px}
+.meter i{display:block;height:100%;border-radius:5px;transition:width .3s}
+.mnote{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.parts .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.perf{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.perf li{display:grid;grid-template-columns:112px minmax(0,1fr) 42px;gap:8px;align-items:center;font-size:12px;line-height:1.5}
+.perf .pl{color:var(--ink)}
+.perf .pv{grid-column:3;grid-row:1;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:600}
+.perf .pb{grid-column:2;grid-row:1;height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden}
+.perf .pb i{display:block;height:100%;border-radius:4px;transition:width .35s}
+.perf .empty{color:var(--muted);font-size:12.5px}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.checks li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;font-size:13px;align-items:start}
+.checks .ic{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;margin-top:1px}
+.checks .ok .ic{background:var(--ok-soft);color:var(--ok)} .checks .warn .ic{background:var(--warn-soft);color:var(--warn)} .checks .err .ic{background:var(--err-soft);color:var(--err)}
+.checks .todo .ic{background:var(--panel-2);color:var(--muted)}
+.note{font-size:11.5px;color:var(--muted);margin:0}
+
+@media (max-width:0px){
+  header.top{grid-template-columns:minmax(0,1fr);grid-template-areas:"brand" "totals"}
+  .totals{justify-self:center;justify-content:center}
+  .hbtns{justify-content:center}
+  html,body{height:auto}
+  main.app{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto auto;row-gap:16px;grid-template-areas:"head head" "stage stage" "cat sum"}
+  .stage{height:min(78vh,720px);flex:none}
+  .list,.sheet{overflow:visible}
+}
+/* phone: no pictures, list + summary, price bar pinned to the bottom */
+.mbar{display:none}
+.brand .mo{display:none}
+.tab .tv{display:none}
+@media (max-width:0px){
+  body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+  main.app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;row-gap:14px;grid-template-areas:"head" "sum" "cat";padding-top:10px}
+  .stagecol{display:none}
+  .brand .dt{display:none}
+  .brand .mo{display:inline}
+  header.top{padding-bottom:0}
+  .brand h1{font-size:26px}
+  .brand p{font-size:13.5px}
+  .totals .stat,.totals .pill{display:none}
+  .totals{max-width:none}
+  .tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:rgba(11,22,40,.9);backdrop-filter:blur(8px);margin-inline:-4px;padding:8px 4px;border-radius:0 0 10px 10px}
+  .tab{padding:10px 12px}
+  /* summary sits at the top as a compact one-line-per-part list */
+  .parts li{grid-template-columns:98px minmax(0,1fr) auto auto;gap:6px;padding:3px 0}
+  .parts .lbl{grid-column:auto;font-size:9.5px;letter-spacing:.02em;white-space:nowrap}
+  .meter,.mnote{display:none}
+  .parts .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px}
+  .parts .pr{font-size:12.5px}
+  .parts .empty{font-size:12px}
+  .parts .x{width:28px;height:28px}
+  .sec{padding:8px 12px}
+  .sec h2{margin-bottom:4px}
+  .sumtotal b{font-size:18px}
+  .card{grid-template-columns:minmax(0,1fr);cursor:default;padding:12px}
+  .card .thumb{display:none}
+  .card .btn{padding:8px 14px;font-size:14px}
+  .toast{position:fixed;top:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:30}
+  .mbar{display:flex;align-items:center;gap:12px;position:fixed;left:0;right:0;bottom:0;z-index:20;
+    padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+    background:rgba(11,22,40,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line)}
+  .mbar .mtot{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+  .mbar .mtot small{font-size:11px;color:var(--muted)}
+  .mbar .mtot b{font-family:var(--f-display);font-size:20px;font-variant-numeric:tabular-nums}
+  .mbar .pill{margin-left:auto;white-space:nowrap}
+  .mbar .btn{padding:8px 12px;font-size:13.5px;white-space:nowrap}
+}
+/* tablets in portrait: the phone layout, with products in two columns */
+@media (max-width:0px){ .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start} }
+@media (prefers-reduced-motion:reduce){ .pop,.zone.hot .zone-hit{animation:none} .card{transition:none} }
+
+/* ===== UX prototype: big mat in the middle, category tiles underneath, catalog as a drawer, build on the right ===== */
+body{background:#0f1720;background-image:none}
+main.app.ux{grid-template-columns:minmax(0,1fr) minmax(300px,340px);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"head head" "stage sum" "tray sum";gap:12px 16px}
+.ux .stagecol{grid-area:stage;position:relative;min-height:0}
+.ux .stage{background:#131e2b;background-image:none;border-color:#223246}
+.ux .sum{grid-area:sum}
+.ux .tray{grid-area:tray;min-width:0}
+.ux .tabs{display:flex;gap:12px;justify-content:center;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding:4px 4px 6px;border:0;background:none;position:static}
+.ux .tab{flex:none;width:104px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px 8px;border-radius:14px;
+  background:#1c2735;border:1px solid #3f8f63;color:#e6edf6;white-space:normal;line-height:1.15;transition:transform .15s,border-color .15s,background .15s}
+.ux .tab:hover{transform:translateY(-2px);border-color:#5fc58a;filter:none}
+.ux .tab[aria-selected="true"]{background:#243250;border-color:#6fdc9c;box-shadow:0 0 0 2px rgba(111,220,156,.3);font-weight:500}
+.ux .tab.open{background:#2c3d63;border-color:#6fdc9c}
+.ux .tab.filled{border-color:#3f8f63}
+.ux .tab .ic{width:64px;height:46px;display:block}
+.ux .tab .tl{font-size:12.5px;font-weight:600;text-align:center}
+.ux .tab .tv{display:block;font-size:10.5px;color:#93a6bf;text-align:center;max-width:96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ux .tab.filled .tv{color:#7fdca6}
+.ux .tab .dot{display:none}
+.drawer{position:absolute;left:10px;right:10px;bottom:10px;height:min(62%,520px);z-index:8;background:rgba(19,29,43,.97);backdrop-filter:blur(8px);
+  border:1px solid #2e4060;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 18px 40px rgba(0,0,0,.45);
+  transform:translateY(calc(100% + 20px));opacity:0;pointer-events:none;transition:transform .28s cubic-bezier(.2,.9,.3,1),opacity .2s}
+.drawer.open{transform:none;opacity:1;pointer-events:auto}
+.drawer.open.peek{opacity:.1;pointer-events:none;transition:opacity .15s}
+.drawer .cathead{display:flex;align-items:center;gap:10px;margin:0}
+.drawer .cathead span{margin-left:auto}
+.dclose{border:1px solid #3a4c6a;background:#22304a;color:#fff;width:30px;height:30px;border-radius:8px;font-size:18px;line-height:1}
+.dclose:hover{border-color:#5b8cff}
+.drawer .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;overflow-y:auto;align-content:start;padding-right:4px}
+.drawer .segs{margin:0}
+@media (prefers-reduced-motion:reduce){ .drawer{transition:none} .ux .tab{transition:none} }
+/* desktop: the catalog opens as a full-height column on the left; mat and category tiles move right */
+@media (min-width:861px){
+  main.app.ux{grid-template-columns:auto minmax(0,1fr) minmax(300px,340px);grid-template-areas:"cat head head" "cat stage sum" "cat tray sum";column-gap:0}
+  .ux .dclose{display:none}
+  /* summary: one line per part (label | name | price | ×) so the right column fits without scrolling */
+  .ux .parts li{grid-template-columns:92px minmax(0,1fr) auto auto;gap:6px;padding:2px 0;min-height:30px}
+  .ux .parts .lbl{grid-column:auto;font-size:9.5px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ux .parts .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px}
+  .ux .parts .pr,.ux .parts .empty{font-size:12.5px}
+  .ux .uxhint{grid-area:stage;align-self:start;justify-self:end;transform:translateY(calc(-100% - 7px));pointer-events:none;font-size:12px;color:#9fb3cc;white-space:nowrap}
+  .ux .sum{margin-left:16px}
+  .ux .drawer{grid-area:cat;position:static;width:0;height:auto;padding:0;border-width:0;opacity:1;transform:none;transition:none;display:none;box-shadow:none;background:#162231;min-height:0;margin-right:12px}
+  .ux .drawer.open{display:flex;width:clamp(300px,28vw,380px);padding:12px 12px 12px 14px;border-width:1px}
+  .ux .drawer.open.peek{opacity:1;pointer-events:auto}
+  .ux .drawer .list{grid-template-columns:minmax(0,1fr)}
+  .ux .drawer .segs{flex-wrap:wrap}
+  /* tiles shrink to fit under the narrower mat instead of scrolling */
+  .ux .tabs{gap:8px;overflow:visible}
+  .ux .tab{flex:1 1 0;width:auto;min-width:0;max-width:104px;padding-inline:4px}
+  .ux .tab .ic{width:100%;max-width:64px;height:auto;aspect-ratio:64/46}
+  .ux .tab .tv{max-width:100%}
+}
+/* on taller screens there is room for the category label above the full name */
+@media (min-width:861px) and (min-height:860px){
+  .ux .parts li{grid-template-columns:minmax(0,1fr) auto auto;gap:0 8px;padding:3px 0;min-height:0}
+  .ux .parts .lbl{grid-column:1/-1;font-size:9.5px;line-height:1.3}
+  .ux .parts .nm,.ux .parts .pr,.ux .parts .empty{font-size:13px;line-height:1.35}
+  .ux .parts .x{width:24px;height:24px}
+}
+@media (max-width:860px){
+  html,body{height:auto;overflow:auto}
+  main.app.ux{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"head" "stage" "tray" "sum"}
+  .ux .stagecol{height:58vh}
+  .ux .tabs{justify-content:flex-start}
+  .ux .tab{width:92px}
+  .drawer{position:fixed;left:0;right:0;bottom:0;height:72vh;border-radius:16px 16px 0 0;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+  .drawer .list{grid-template-columns:minmax(0,1fr)}
+  .totals{justify-self:center}
+}
+</style>
+</head>
+<body>
+
+
+
+<main class="app ux">
+<header class="top">
+  <div class="brand">
+    <h1><span class="ttl"><span class="glow">PC Konfigurátor</span><sup class="beta">beta</sup></span></h1>
+    <p><span class="dt">Sestav si PC. Vyber díly z menu a skládej počítač.</span><span class="mo">Sestav si PC. Vyber díly z menu a skládej počítač.</span></p>
+  </div>
+  <div class="totals">
+    <div class="stat"><small>Cena sestavy</small><b id="tPrice">0 Kč</b></div>
+    <div class="stat"><small>Odběr</small><b id="tWatt">0 W</b></div>
+    <span id="tStatus" class="pill ok">—</span>
+    <div class="hbtns">
+      <button class="btn" id="bDemo" type="button" hidden>Ukázková sestava</button>
+      <button class="btn" id="bSaveDemo" type="button" hidden title="Uloží tuhle sestavu jako ukázkovou v tomto prohlížeči">Uložit jako ukázkovou</button>
+      <button class="btn" id="bClear" type="button">Vyprázdnit</button>
+    </div>
+  </div>
+</header>
+  <section class="col stagecol" aria-label="Podložka">
+    <div class="stage" id="stage">
+      <canvas id="c3d" aria-label="3D pohled na podložku se sestavou"></canvas>
+      <button class="monchip" id="monChip" type="button" hidden aria-label="Vybraný monitor"></button>
+      <div class="b3bar"><button class="btn pwr" id="b3Pwr" type="button" hidden>⏻ Zapnout</button><button class="btn tower" id="b3Tower" type="button" hidden>Postavit skříň</button><button class="btn primary" id="b3Asm" type="button" hidden>Zprůhlednit skříň</button></div>
+    </div>
+  </section>
+  <section class="col cat drawer" id="drawer" aria-label="Výběr dílu">
+      <div class="cathead"><h2 id="catTitle"></h2><span id="catCount"></span><button class="dclose" id="dClose" type="button" aria-label="Zavřít výběr">×</button></div>
+      <div class="segs" id="seg" aria-label="Filtry" hidden></div>
+      <div class="list" id="list"></div>
+    </section>
+  <nav class="tray" aria-label="Kategorie dílů"><div class="tabs" id="tabs" role="tablist"></div></nav>
+
+  <aside class="col sum" aria-label="Souhrn sestavy">
+    <div class="sheet">
+      <div class="sec"><h2>Sestava <small id="sCount"></small></h2><ul class="parts" id="parts"></ul>
+        <div class="sumtotal"><span>Celkem</span><b id="sPrice">0 Kč</b></div></div>
+      <div class="sec"><h2>Upozornění</h2><ul class="checks" id="checks"></ul><div class="meter"><i id="mBar"></i></div><div class="mnote" id="mNote"></div></div>
+      <div class="sec"><h2>Očekávaný výkon <small id="perfNote"></small></h2><ul class="perf" id="perf"></ul></div>
+    </div>
+  </aside>
+</main>
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="mbar" id="mbar"><div class="mtot"><small id="mCount">0 z 8 dílů</small><b id="mPrice">0 Kč</b></div><span id="mStatus" class="pill ok">—</span><button class="btn primary" id="bSheet" type="button">Sestava</button></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+const GOLD='#d4a94a', PCB='#1f5c3f';
+const CAT={
+  cpu:{label:'Procesor',zone:'CPU'}, mb:{label:'Základní deska',zone:'Základní deska'},
+  ram:{label:'Operační paměť',zone:'RAM'}, gpu:{label:'Grafická karta',zone:'Grafická karta'},
+  ssd:{label:'Úložiště',zone:'Disk'}, cooler:{label:'Chladič CPU',zone:'Chladič'},
+  psu:{label:'Zdroj',zone:'Zdroj'}, case:{label:'Skříň',zone:'Skříň'},
+  monitor:{label:'Monitor',zone:'Monitor'}
+};
+const TABS=['mb','cpu','ram','gpu','ssd','cooler','psu','case','monitor'];
+const OPTIONAL=['monitor']; // not counted in the 8 parts a working PC needs
+
+const DATA_DATE='22. 10. 2026';
+const ALL_SOCKETS=['AM4','AM5','LGA1700','LGA1851'];
+const PARTS=[
+ /* Procesory */
+ {id:'r7-5700x',cat:'cpu',sold:357,alza:true,name:'AMD Ryzen 7 5700X',code:'100-100000926WOF',brand:'AMD',model:'RYZEN 7 5700X',tone:'#c8102e',socket:'AM4',tdp:65,igpu:false,price:4790,spec:['8 jader','AM4','65 W','bez iGPU']},
+ {id:'r5-5600',cat:'cpu',sold:276,alza:true,boxCooler:'AMD Wraith Stealth',name:'AMD Ryzen 5 5600',code:'RYZEN 5 5600',brand:'AMD',model:'RYZEN 5 5600',tone:'#c8102e',socket:'AM4',tdp:65,igpu:false,price:2890,spec:['6 jader','AM4','65 W','bez iGPU','chladič v balení']},
+ {id:'r5-5600x',cat:'cpu',boxCooler:'AMD Wraith Stealth',sold:209,name:'AMD Ryzen 5 5600X',code:'100-100000065BOX',brand:'AMD',model:'RYZEN 5 5600X',tone:'#c8102e',socket:'AM4',tdp:65,igpu:false,price:2880,spec:['6 jader','AM4','65 W','bez iGPU','chladič v balení']},
+ {id:'r7-7800x3d',cat:'cpu',sold:179,alza:true,name:'AMD Ryzen 7 7800X3D',code:'RYZEN 7 7800X3D',brand:'AMD',model:'RYZEN 7 7800X3D',tone:'#c8102e',socket:'AM5',tdp:120,igpu:true,price:8790,spec:['8 jader','3D V-Cache','AM5','120 W']},
+ {id:'r7-5800x3d',cat:'cpu',sold:151,alza:true,name:'AMD Ryzen 7 5800X3D 10th Anniversary Edition',code:'100-100000651WOF',brand:'AMD',model:'RYZEN 7 5800X3D',tone:'#c8102e',socket:'AM4',tdp:105,igpu:false,price:8390,spec:['8 jader','3D V-Cache','AM4','105 W']},
+ {id:'r5-7500f',cat:'cpu',sold:128,name:'AMD Ryzen 5 7500F',code:'100-000000597',brand:'AMD',model:'RYZEN 5 7500F',tone:'#c8102e',socket:'AM5',tdp:65,igpu:false,price:3062,spec:['6 jader','AM5','65 W','bez iGPU']},
+ {id:'r7-9800x3d',cat:'cpu',sold:168,name:'AMD Ryzen 7 9800X3D',code:'100-100001084WOF',brand:'AMD',model:'RYZEN 7 9800X3D',tone:'#c8102e',socket:'AM5',tdp:120,igpu:true,price:10590,alza:true,spec:['8 jader','3D V-Cache','AM5','120 W']},
+ {id:'r5-5500',cat:'cpu',boxCooler:'AMD Wraith Stealth',sold:77,name:'AMD Ryzen 5 5500',code:'100-100000457BOX',brand:'AMD',model:'RYZEN 5 5500',tone:'#c8102e',socket:'AM4',tdp:65,igpu:false,price:2221,spec:['6 jader','AM4','65 W','bez iGPU','chladič v balení']},
+ {id:'r9-5950x',cat:'cpu',sold:59,name:'AMD Ryzen 9 5950X',code:'100-100000059WOF',brand:'AMD',model:'RYZEN 9 5950X',tone:'#c8102e',socket:'AM4',tdp:105,igpu:false,price:8069,spec:['16 jader','AM4','105 W','bez iGPU']},
+ {id:'r5-9600x',cat:'cpu',sold:55,alza:true,alzaRank:5,name:'AMD Ryzen 5 9600X',code:'100-100001405WOF',brand:'AMD',model:'RYZEN 5 9600X',tone:'#c8102e',socket:'AM5',tdp:65,igpu:true,price:4890,spec:['6 jader','AM5','65 W']},
+ /* Alza.cz, ze screenshotu 24. 10. 2026 */
+ {id:'r7-9700x',cat:'cpu',sold:0,alza:true,name:'AMD Ryzen 7 9700X',code:'RYZEN 7 9700X',brand:'AMD',model:'RYZEN 7 9700X',tone:'#c8102e',socket:'AM5',tdp:65,igpu:true,price:7190,spec:['8 jader','5,5 GHz','AM5','65 W']},
+ {id:'r9-9950x3d',cat:'cpu',sold:0,alza:true,name:'AMD Ryzen 9 9950X3D',code:'RYZEN 9 9950X3D',brand:'AMD',model:'RYZEN 9 9950X3D',tone:'#c8102e',socket:'AM5',tdp:170,igpu:true,price:15990,spec:['16 jader','3D V-Cache','AM5','170 W']},
+ {id:'r7-9850x3d',cat:'cpu',sold:0,alza:true,name:'AMD Ryzen 7 9850X3D',code:'100-100001973WOF',brand:'AMD',model:'RYZEN 7 9850X3D',tone:'#c8102e',socket:'AM5',tdp:120,igpu:true,price:11390,spec:['8 jader','3D V-Cache','AM5','120 W']},
+ {id:'r9-9900x',cat:'cpu',sold:0,alza:true,name:'AMD Ryzen 9 9900X',code:'RYZEN 9 9900X',brand:'AMD',model:'RYZEN 9 9900X',tone:'#c8102e',socket:'AM5',tdp:120,igpu:true,price:8990,spec:['12 jader','5,6 GHz','AM5','120 W']},
+ {id:'r9-9950x3d2',cat:'cpu',sold:0,alza:true,alzaRank:9,name:'AMD Ryzen 9 9950X3D2',code:'RYZEN 9 9950X3D2',brand:'AMD',model:'RYZEN 9 9950X3D2',tone:'#c8102e',socket:'AM5',tdp:200,igpu:true,price:21590,spec:['16 jader','192 MB L3','AM5','200 W']},
+ {id:'r5-8600g',cat:'cpu',boxCooler:'AMD Wraith Stealth',sold:0,alza:true,alzaRank:6,name:'AMD Ryzen 5 8600G',code:'RYZEN 5 8600G',brand:'AMD',model:'RYZEN 5 8600G',tone:'#c8102e',socket:'AM5',tdp:65,igpu:true,price:4190,spec:['6 jader','Radeon 760M','AM5','chladič v balení']},
+ /* Alza.cz, procesory ze screenshotu 30. 10. 2026 */
+ {id:'r7-5700g',cat:'cpu',sold:0,alza:true,boxCooler:'AMD Wraith Stealth',name:'AMD Ryzen 7 5700G',code:'RYZEN 7 5700G',brand:'AMD',model:'RYZEN 7 5700G',tone:'#c8102e',socket:'AM4',tdp:65,igpu:true,price:4990,spec:['8 jader','Radeon Graphics','AM4','chladič v balení']},
+ {id:'r5-7500x3d',cat:'cpu',sold:0,alza:true,name:'AMD Ryzen 5 7500X3D',code:'RYZEN 5 7500X3D',brand:'AMD',model:'RYZEN 5 7500X3D',tone:'#c8102e',socket:'AM5',tdp:65,igpu:true,price:5490,spec:['6 jader','3D V-Cache','AM5','65 W']},
+ {id:'r3-3200g',cat:'cpu',sold:0,alza:true,boxCooler:'AMD Wraith Stealth',name:'AMD Ryzen 3 3200G',code:'RYZEN 3 3200G',brand:'AMD',model:'RYZEN 3 3200G',tone:'#c8102e',socket:'AM4',tdp:65,igpu:true,price:1299,spec:['4 jádra','Radeon Vega 8','AM4','chladič v balení']},
+ {id:'i3-14100f',cat:'cpu',sold:0,alza:true,boxCooler:'Intel Laminar RM1',name:'Intel Core i3-14100F',code:'CORE i3-14100F',brand:'intel',model:'CORE i3-14100F',tone:'#0068b5',socket:'LGA1700',tdp:58,igpu:false,price:2449,spec:['4 jádra','LGA1700','bez iGPU','chladič v balení']},
+ {id:'i3-14100',cat:'cpu',sold:0,alza:true,boxCooler:'Intel Laminar RM1',name:'Intel Core i3-14100',code:'CORE i3-14100',brand:'intel',model:'CORE i3-14100',tone:'#0068b5',socket:'LGA1700',tdp:60,igpu:true,price:3399,spec:['4 jádra','UHD 730','LGA1700','chladič v balení']},
+ {id:'cu5-250kfp',cat:'cpu',sold:0,alza:true,name:'Intel Core Ultra 5 250KF Plus',code:'CORE ULTRA 5 250KF PLUS',brand:'intel',model:'CORE ULTRA 5',tone:'#0068b5',socket:'LGA1851',tdp:125,igpu:false,price:5299,spec:['18 jader','5,3 GHz','LGA1851','bez iGPU']},
+ {id:'cu5-250kp',cat:'cpu',sold:0,alza:true,name:'Intel Core Ultra 5 250K Plus',code:'CORE ULTRA 5 250K PLUS',brand:'intel',model:'CORE ULTRA 5',tone:'#0068b5',socket:'LGA1851',tdp:125,igpu:true,price:5999,spec:['18 jader','5,3 GHz','LGA1851']},
+ /* Intel: na Allegru mimo žebříček, ceny orientační */
+ {id:'cu7-270kp',cat:'cpu',sold:0,alza:true,name:'Intel Core Ultra 7 270K Plus',code:'CORE ULTRA 7 270K PLUS',brand:'intel',model:'CORE ULTRA 7',tone:'#0068b5',socket:'LGA1851',tdp:125,igpu:true,price:7999,spec:['24 jader','5,5 GHz','LGA1851']},
+ {id:'i5-14400',cat:'cpu',boxCooler:'Intel Laminar RM1',sold:0,est:true,alzaTop:2,name:'Intel Core i5-14400',code:'BX8071514400',brand:'intel',model:'CORE i5-14400',tone:'#0068b5',socket:'LGA1700',tdp:65,igpu:true,price:4290,spec:['10 jader','LGA1700','65 W','chladič v balení']},
+ {id:'i7-14700kf',cat:'cpu',sold:0,est:true,alzaTop:3,name:'Intel Core i7-14700KF',code:'BX8071514700KF',brand:'intel',model:'CORE i7-14700KF',tone:'#0068b5',socket:'LGA1700',tdp:125,igpu:false,price:8490,spec:['20 jader','LGA1700','125 W','bez iGPU']},
+ {id:'i5-14400f',cat:'cpu',boxCooler:'Intel Laminar RM1',sold:0,est:true,name:'Intel Core i5-14400F',code:'BX8071514400F',brand:'intel',model:'CORE i5-14400F',tone:'#0068b5',socket:'LGA1700',tdp:65,igpu:false,price:3390,spec:['10 jader','LGA1700','65 W','bez iGPU','chladič v balení']},
+ {id:'i5-14600kf',cat:'cpu',sold:0,est:true,name:'Intel Core i5-14600KF',code:'BX8071514600KF',brand:'intel',model:'CORE i5-14600KF',tone:'#0068b5',socket:'LGA1700',tdp:125,igpu:false,price:5190,spec:['14 jader','LGA1700','125 W','bez iGPU']},
+ {id:'i5-12400f',cat:'cpu',boxCooler:'Intel Laminar RM1',sold:0,est:true,name:'Intel Core i5-12400F',code:'BX8071512400F',brand:'intel',model:'CORE i5-12400F',tone:'#0068b5',socket:'LGA1700',tdp:65,igpu:false,price:2390,spec:['6 jader','LGA1700','65 W','bez iGPU','chladič v balení']},
+ {id:'i3-12100f',cat:'cpu',boxCooler:'Intel Laminar RM1',sold:0,est:true,name:'Intel Core i3-12100F',code:'BX8071512100F',brand:'intel',model:'CORE i3-12100F',tone:'#0068b5',socket:'LGA1700',tdp:58,igpu:false,price:1890,spec:['4 jádra','LGA1700','58 W','bez iGPU','chladič v balení']},
+ {id:'cu5-245k',cat:'cpu',sold:0,est:true,name:'Intel Core Ultra 5 245K',code:'BX80768245K',brand:'intel',model:'CORE ULTRA 5',tone:'#0068b5',socket:'LGA1851',tdp:125,igpu:true,price:5490,spec:['14 jader','LGA1851','125 W']},
+
+ /* Základní desky */
+ {id:'a520m-k-v2',cat:'mb',sold:68,name:'Gigabyte A520M K V2',code:'A520M K V2',short:'A520M K V2',tone:'#4b5058',pcb:'#1c1f24',socket:'AM4',ram:'DDR4',form:'mATX',price:1339,spec:['AM4','DDR4','mATX']},
+ {id:'b650-eagle',cat:'mb',sold:59,name:'Gigabyte B650 Eagle',code:'B650 EAGLE',short:'B650 EAGLE',tone:'#7b828c',pcb:'#1a1d22',socket:'AM5',ram:'DDR5',form:'ATX',price:2940,spec:['AM5','DDR5','ATX']},
+ {id:'b650m-h',cat:'mb',sold:49,name:'ASRock B650M-H/M.2+',code:'B650M-H/M.2+',short:'B650M-H/M.2+',tone:'#5c636d',pcb:'#1e2126',socket:'AM5',ram:'DDR5',form:'mATX',price:2025,spec:['AM5','DDR5','mATX']},
+ {id:'b550m-k',cat:'mb',sold:46,name:'Gigabyte B550M K',code:'B550M K',short:'B550M K',tone:'#54595f',pcb:'#1c1f24',socket:'AM4',ram:'DDR4',form:'mATX',price:1859,spec:['AM4','DDR4','mATX']},
+ {id:'b450m-k2',cat:'mb',sold:44,name:'ASUS Prime B450M-K II',code:'PRIME B450M-K II',short:'PRIME B450M-K II',tone:'#9aa1a9',pcb:'#202328',socket:'AM4',ram:'DDR4',form:'mATX',price:1496,spec:['AM4','DDR4','mATX']},
+ {id:'b850-gplus',cat:'mb',sold:39,name:'MSI B850 Gaming Plus WiFi',code:'B850 GAMING PLUS WIFI',short:'B850 GAMING PLUS',tone:'#6d737c',pcb:'#16181c',socket:'AM5',ram:'DDR5',form:'ATX',price:4744,spec:['AM5','DDR5','ATX','Wi-Fi 7']},
+ {id:'b650-gx-ax2',cat:'mb',sold:34,name:'Gigabyte B650 Gaming X AX V2',code:'B650 GAMING X AX V2',short:'B650 GAMING X AX',tone:'#8a929c',pcb:'#1a1d22',socket:'AM5',ram:'DDR5',form:'ATX',price:3499,spec:['AM5','DDR5','ATX','Wi-Fi 6E']},
+ {id:'b550-gplus',cat:'mb',sold:30,name:'MSI MPG B550 Gaming Plus',code:'MPG B550 GAMING PLUS',short:'B550 GAMING PLUS',tone:'#a3262f',pcb:'#16181c',socket:'AM4',ram:'DDR4',form:'ATX',price:3350,spec:['AM4','DDR4','ATX']},
+ {id:'h610m-s2h',cat:'mb',sold:28,name:'Gigabyte H610M S2H V2 DDR4',code:'H610M S2H V2 DDR4',short:'H610M S2H V2',tone:'#4b5058',pcb:'#1c1f24',socket:'LGA1700',ram:'DDR4',form:'mATX',price:789,spec:['LGA1700','DDR4','mATX']},
+ {id:'b850m-pro',cat:'mb',sold:17,name:'ASRock B850M Pro RS WiFi',code:'B850M PRO RS WIFI',short:'B850M PRO RS',tone:'#c3c9d0',pcb:'#202328',socket:'AM5',ram:'DDR5',form:'mATX',price:3231,spec:['AM5','DDR5','mATX','Wi-Fi']},
+ /* Alza.cz, AM5 desky ze screenshotu 25. 10. 2026 */
+ /* Alza.cz, Mini-ITX desky ze screenshotu 31. 10. 2026 */
+ {id:'asrock-a520m-itx',cat:'mb',sold:0,alza:true,name:'ASRock A520M-ITX/ac',code:'A520M-ITX/AC',short:'A520M-ITX/ac',tone:'#3d4650',pcb:'#1a1d22',socket:'AM4',ram:'DDR4',form:'ITX',price:2299,spec:['A520','AM4','DDR4','Mini-ITX','Wi-Fi']},
+ {id:'asrock-b550m-itx',cat:'mb',sold:0,alza:true,name:'ASRock B550M-ITX/ac',code:'B550M-ITX/AC',short:'B550M-ITX/ac',tone:'#3d4650',pcb:'#1a1d22',socket:'AM4',ram:'DDR4',form:'ITX',price:2959,spec:['B550','AM4','DDR4','Mini-ITX','Wi-Fi']},
+ /* Alza.cz, Mini-ITX desky ze screenshotu 31. 10. 2026 (druhá série) */
+ {id:'asrock-b850i-lightning',cat:'mb',sold:0,alza:true,name:'ASRock B850I Lightning WiFi',code:'ASROCK B850I LIGHTNING WIFI',short:'B850I LIGHTNING',tone:'#3d4650',pcb:'#1a1d22',socket:'AM5',ram:'DDR5',form:'ITX',price:4739,spec:['B850','AM5','DDR5','Mini-ITX','Wi-Fi']},
+ {id:'gb-b850i-aorus-pro',cat:'mb',sold:0,alza:true,name:'Gigabyte B850I Aorus Pro',code:'GIGABYTE B850I AORUS PRO',short:'B850I AORUS PRO',tone:'#8a929c',pcb:'#1a1d22',socket:'AM5',ram:'DDR5',form:'ITX',price:5939,spec:['B850','AM5','DDR5','Mini-ITX','Wi-Fi']},
+ {id:'gb-x870i-aorus-pro-ice',cat:'mb',sold:0,alza:true,alzaRank:5,name:'Gigabyte X870I Aorus Pro Ice',code:'GIGABYTE X870I AORUS PRO ICE',short:'X870I AORUS ICE',tone:'#e9ecef',pcb:'#8c96a1',socket:'AM5',ram:'DDR5',form:'ITX',price:8239,spec:['X870','AM5','DDR5','Mini-ITX','Wi-Fi']},
+ {id:'msi-x870i-edge-ti',cat:'mb',sold:0,alza:true,alzaRank:4,name:'MSI MPG X870I Edge Ti Evo WiFi',code:'MSI MPG X870I EDGE TI EVO WIFI',short:'X870I EDGE TI',tone:'#e9ecef',pcb:'#8c96a1',socket:'AM5',ram:'DDR5',form:'ITX',price:10590,spec:['X870','AM5','DDR5','Mini-ITX','Wi-Fi']},
+ {id:'rog-x870i',cat:'mb',sold:0,alza:true,name:'ASUS ROG Strix X870-I Gaming WiFi',code:'ASUS ROG STRIX X870-I GAMING WIFI',short:'ROG X870-I',tone:'#4a4f57',pcb:'#16181c',socket:'AM5',ram:'DDR5',form:'ITX',price:11090,spec:['X870','AM5','DDR5','Mini-ITX','Wi-Fi']},
+ {id:'asrock-b860i',cat:'mb',sold:0,alza:true,name:'ASRock B860I WiFi',code:'ASROCK B860I WIFI',short:'B860I',tone:'#3d4650',pcb:'#1a1d22',socket:'LGA1851',ram:'DDR5',form:'ITX',price:3490,spec:['B860','LGA1851','DDR5','Mini-ITX','Wi-Fi']},
+ {id:'gb-b860i-aorus-ice',cat:'mb',sold:0,alza:true,name:'Gigabyte B860I Aorus Pro Ice',code:'GIGABYTE B860I AORUS PRO ICE',short:'B860I AORUS ICE',tone:'#e9ecef',pcb:'#8c96a1',socket:'LGA1851',ram:'DDR5',form:'ITX',price:5689,spec:['B860','LGA1851','DDR5','Mini-ITX','Wi-Fi']},
+ {id:'rog-b860i',cat:'mb',sold:0,alza:true,name:'ASUS ROG Strix B860-I Gaming WiFi',code:'ASUS ROG STRIX B860-I GAMING WIFI',short:'ROG B860-I',tone:'#4a4f57',pcb:'#16181c',socket:'LGA1851',ram:'DDR5',form:'ITX',price:6199,spec:['B860','LGA1851','DDR5','Mini-ITX','Wi-Fi']},
+ {id:'asrock-z890i-nova',cat:'mb',sold:0,alza:true,name:'ASRock Z890I Nova WiFi',code:'ASROCK Z890I NOVA WIFI',short:'Z890I NOVA',tone:'#5b4a8a',pcb:'#1a1d22',socket:'LGA1851',ram:'DDR5',form:'ITX',price:6399,spec:['Z890','LGA1851','DDR5','Mini-ITX','Wi-Fi']},
+ {id:'msi-z890i-edge-ti',cat:'mb',sold:0,alza:true,name:'MSI MPG Z890I Edge Ti WiFi',code:'MSI MPG Z890I EDGE TI WIFI',short:'Z890I EDGE TI',tone:'#e9ecef',pcb:'#8c96a1',socket:'LGA1851',ram:'DDR5',form:'ITX',price:6999,spec:['Z890','LGA1851','DDR5','Mini-ITX','Wi-Fi']},
+ {id:'asrock-z790m-itx',cat:'mb',sold:0,alza:true,name:'ASRock Z790M-ITX WiFi',code:'ASROCK Z790M-ITX WIFI',short:'Z790M-ITX',tone:'#3d4650',pcb:'#1a1d22',socket:'LGA1700',ram:'DDR5',form:'ITX',price:4399,spec:['Z790','LGA1700','DDR5','Mini-ITX','Wi-Fi']},
+ {id:'rog-b760i',cat:'mb',sold:0,alza:true,name:'ASUS ROG Strix B760-I Gaming WiFi',code:'ASUS ROG STRIX B760-I GAMING WIFI',short:'ROG B760-I',tone:'#4a4f57',pcb:'#16181c',socket:'LGA1700',ram:'DDR5',form:'ITX',price:4869,spec:['B760','LGA1700','DDR5','Mini-ITX','Wi-Fi']},
+ {id:'b650-eagle-ax',cat:'mb',sold:0,alza:true,name:'Gigabyte B650 Eagle AX',code:'B650 EAGLE AX',short:'B650 EAGLE AX',tone:'#7b828c',pcb:'#1a1d22',socket:'AM5',ram:'DDR5',form:'ATX',price:3279,spec:['B650','AM5','DDR5','ATX','Wi-Fi']},
+ {id:'tuf-b850-plus',cat:'mb',sold:0,alza:true,name:'ASUS TUF Gaming B850-Plus WiFi',code:'TUF GAMING B850-PLUS WIFI',short:'TUF B850-PLUS',tone:'#9a8a5a',pcb:'#22251f',socket:'AM5',ram:'DDR5',form:'ATX',price:4990,spec:['B850','AM5','DDR5','ATX','Wi-Fi']},
+ {id:'tuf-x870-plus',cat:'mb',sold:0,alza:true,name:'ASUS TUF Gaming X870-Plus WiFi',code:'TUF GAMING X870-PLUS WIFI',short:'TUF X870-PLUS',tone:'#9a8a5a',pcb:'#22251f',socket:'AM5',ram:'DDR5',form:'ATX',price:5189,spec:['X870','AM5','DDR5','ATX','Wi-Fi']},
+ {id:'msi-b850-edge',cat:'mb',sold:0,alza:true,name:'MSI MPG B850 Edge Ti WiFi',code:'MPG B850 EDGE TI WIFI',short:'B850 EDGE TI',tone:'#d6dbe1',pcb:'#2a2e35',socket:'AM5',ram:'DDR5',form:'ATX',price:5299,spec:['B850','AM5','DDR5','ATX','Wi-Fi']},
+ {id:'rog-x870f',cat:'mb',sold:0,alza:true,name:'ASUS ROG Strix X870-F Gaming WiFi',code:'ROG STRIX X870-F GAMING WIFI',short:'ROG STRIX X870-F',tone:'#4a4f57',pcb:'#16181c',socket:'AM5',ram:'DDR5',form:'ATX',price:7490,spec:['X870','AM5','DDR5','ATX','Wi-Fi']},
+ {id:'tuf-b650-plus',cat:'mb',sold:0,alza:true,alzaRank:10,name:'ASUS TUF Gaming B650-Plus WiFi',code:'TUF GAMING B650-PLUS WIFI',short:'TUF B650-PLUS',tone:'#9a8a5a',pcb:'#22251f',socket:'AM5',ram:'DDR5',form:'ATX',price:3490,spec:['B650','AM5','DDR5','ATX','Wi-Fi']},
+ {id:'rog-x870e-e',cat:'mb',sold:0,alza:true,name:'ASUS ROG Strix X870E-E Gaming WiFi',code:'ROG STRIX X870E-E GAMING WIFI',short:'ROG STRIX X870E-E',tone:'#4a4f57',pcb:'#16181c',socket:'AM5',ram:'DDR5',form:'ATX',price:12190,spec:['X870E','AM5','DDR5','ATX','Wi-Fi']},
+ {id:'x870e-aorus-elite',cat:'mb',sold:0,alza:true,alzaRank:8,name:'Gigabyte X870E Aorus Elite WiFi7',code:'X870E AORUS ELITE WIFI7',short:'X870E AORUS ELITE',tone:'#8a929c',pcb:'#1a1d22',socket:'AM5',ram:'DDR5',form:'ATX',price:6819,spec:['X870E','AM5','DDR5','ATX','Wi-Fi 7']},
+ /* Intel desky z Allegra (mimo top 10) */
+ {id:'z790-tomahawk',cat:'mb',sold:16,alza:true,name:'MSI MAG Z790 Tomahawk WiFi',code:'MAG Z790 TOMAHAWK WIFI',short:'Z790 TOMAHAWK',tone:'#69727e',pcb:'#1b1f24',socket:'LGA1700',ram:'DDR5',form:'ATX',price:4699,spec:['LGA1700','DDR5','ATX','Wi-Fi']},
+ {id:'b760-tuf',cat:'mb',sold:9,name:'ASUS TUF Gaming B760-Plus WiFi',code:'TUF GAMING B760-PLUS WIFI',short:'TUF B760-PLUS',tone:'#9a8a5a',pcb:'#22251f',socket:'LGA1700',ram:'DDR5',form:'ATX',price:3999,spec:['LGA1700','DDR5','ATX','Wi-Fi']},
+ {id:'b760m-e',cat:'mb',sold:0,name:'Gigabyte B760M E DDR5',code:'B760M E DDR5',short:'B760M E',tone:'#4b5058',pcb:'#1c1f24',socket:'LGA1700',ram:'DDR5',form:'mATX',price:1339,spec:['LGA1700','DDR5','mATX']},
+ {id:'h810m-k',cat:'mb',sold:1,name:'Gigabyte H810M K',code:'H810M K',short:'H810M K',tone:'#4b5058',pcb:'#1c1f24',socket:'LGA1851',ram:'DDR5',form:'mATX',price:1919,spec:['LGA1851','DDR5','mATX']},
+ /* Alza.cz, Intel desky ze screenshotu 25. 10. 2026 */
+ {id:'prime-b760m-a-d4',cat:'mb',sold:0,alza:true,name:'ASUS Prime B760M-A WiFi D4',code:'PRIME B760M-A WIFI D4',short:'PRIME B760M-A D4',tone:'#9aa1a9',pcb:'#202328',socket:'LGA1700',ram:'DDR4',form:'mATX',price:2899,spec:['B760','LGA1700','DDR4','mATX','Wi-Fi']},
+ {id:'prime-b760-plus-d4',cat:'mb',sold:0,alza:true,name:'ASUS Prime B760-Plus D4',code:'PRIME B760-PLUS D4',short:'PRIME B760-PLUS D4',tone:'#9aa1a9',pcb:'#202328',socket:'LGA1700',ram:'DDR4',form:'ATX',price:2690,spec:['B760','LGA1700','DDR4','ATX']},
+ {id:'tuf-b860m-plus',cat:'mb',sold:0,alza:true,name:'ASUS TUF Gaming B860M-Plus WiFi',code:'TUF GAMING B860M-PLUS WIFI',short:'TUF B860M-PLUS',tone:'#9a8a5a',pcb:'#22251f',socket:'LGA1851',ram:'DDR5',form:'mATX',price:4390,spec:['B860','LGA1851','DDR5','mATX','Wi-Fi']},
+ {id:'msi-b760-gplus',cat:'mb',sold:0,alza:true,name:'MSI B760 Gaming Plus WiFi',code:'B760 GAMING PLUS WIFI',short:'B760 GAMING PLUS',tone:'#6d737c',pcb:'#16181c',socket:'LGA1700',ram:'DDR5',form:'ATX',price:2799,spec:['B760','LGA1700','DDR5','ATX','Wi-Fi']},
+ {id:'tuf-z890-pro',cat:'mb',sold:0,alza:true,alzaRank:8,name:'ASUS TUF Gaming Z890-Pro WiFi',code:'TUF GAMING Z890-PRO WIFI',short:'TUF Z890-PRO',tone:'#d6dbe1',pcb:'#2a2e35',socket:'LGA1851',ram:'DDR5',form:'ATX',price:6389,spec:['Z890','LGA1851','DDR5','ATX','Wi-Fi']},
+ {id:'prime-b760m-a',cat:'mb',sold:0,alza:true,name:'ASUS Prime B760M-A WiFi',code:'PRIME B760M-A WIFI',short:'PRIME B760M-A',tone:'#9aa1a9',pcb:'#202328',socket:'LGA1700',ram:'DDR5',form:'mATX',price:1999,spec:['B760','LGA1700','DDR5','mATX','Wi-Fi']},
+ {id:'msi-z890-tomahawk',cat:'mb',sold:0,alza:true,alzaRank:3,name:'MSI MAG Z890 Tomahawk WiFi',code:'MAG Z890 TOMAHAWK WIFI',short:'Z890 TOMAHAWK',tone:'#69727e',pcb:'#1b1f24',socket:'LGA1851',ram:'DDR5',form:'ATX',price:7149,spec:['Z890','LGA1851','DDR5','ATX','Wi-Fi 7']},
+
+ /* Paměti */
+ {id:'venom-32-6000',cat:'ram',sold:143,name:'Patriot Viper Venom 32 GB (2×16) DDR5-6000 CL30',code:'PVV532G600C30K',short:'VIPER VENOM',tone:'#1d1f23',ink:'#e6e8eb',type:'DDR5',sticks:2,price:12590,spec:['DDR5','6000 MT/s','CL30','2×16 GB']},
+ {id:'fury-16-3200',cat:'ram',sold:121,name:'Kingston FURY Beast 16 GB (2×8) DDR4-3200 CL16',code:'KF432C16BBK2/16',short:'FURY BEAST',tone:'#16181b',ink:'#e6e8eb',type:'DDR4',sticks:2,price:4790,alza:true,spec:['DDR4','3200 MT/s','CL16','2×8 GB']},
+ /* Alza.cz, DDR4 16 GB ze screenshotu 25. 10. 2026 */
+ {id:'aegis-kit16',cat:'ram',sold:0,alza:true,name:'G.Skill 16GB KIT DDR4 3200MHz CL16 Gaming series Aegis',code:'G.SKILL 16GB KIT DDR4 3200MHZ CL16 GAMING SERIES AEGIS',short:'AEGIS',tone:'#2a2d31',ink:'#e6e8eb',type:'DDR4',sticks:2,price:3299,spec:['DDR4','3200 MT/s','CL16','2×8 GB']},
+ {id:'fury-16x1-3200',cat:'ram',sold:0,alza:true,alzaRank:1,name:'Kingston FURY 16GB DDR4 3200MHz CL16 Beast Black',code:'KINGSTON FURY 16GB DDR4 3200MHZ CL16 BEAST BLACK',short:'FURY BEAST',tone:'#16181b',ink:'#e6e8eb',type:'DDR4',sticks:1,price:3699,spec:['DDR4','3200 MT/s','CL16','1×16 GB']},
+ {id:'fury-rgb-kit16',cat:'ram',sold:0,alza:true,name:'Kingston FURY 16GB KIT DDR4 3200MHz CL16 Beast Black RGB',code:'KINGSTON FURY 16GB KIT DDR4 3200MHZ CL16 BEAST BLACK RGB',short:'FURY BEAST RGB',tone:'#16181b',ink:'#e6e8eb',rgb:true,type:'DDR4',sticks:2,price:3990,spec:['DDR4','3200 MT/s','CL16','2×8 GB']},
+ {id:'lpx-kit16',cat:'ram',sold:0,alza:true,name:'Corsair 16GB KIT DDR4 3200MHz CL16 Vengeance LPX Black',code:'CORSAIR 16GB KIT DDR4 3200MHZ CL16 VENGEANCE LPX BLACK',short:'VENGEANCE LPX',tone:'#15171a',ink:'#e6e8eb',type:'DDR4',sticks:2,price:3790,spec:['DDR4','3200 MT/s','CL16','2×8 GB']},
+ {id:'irdm-32-6400',cat:'ram',sold:117,name:'Goodram IRDM 32 GB (2×16) DDR5-6400 CL32',code:'IRDM DDR5 6400 2x16GB',short:'IRDM',tone:'#141518',ink:'#e6e8eb',type:'DDR5',sticks:2,price:15003,spec:['DDR5','6400 MT/s','CL32','2×16 GB']},
+ {id:'venom-16-6000',cat:'ram',sold:87,name:'Patriot Viper Venom 16 GB (1×16) DDR5-6000 CL30',code:'PVV516G600C30',short:'VIPER VENOM',tone:'#1d1f23',ink:'#e6e8eb',type:'DDR5',sticks:1,price:6390,alza:true,spec:['DDR5','6000 MT/s','CL30','1×16 GB']},
+ /* Alza.cz, DDR5 16 GB ze screenshotu 25. 10. 2026 */
+ {id:'fury-kit16-6000',cat:'ram',sold:0,alza:true,name:'Kingston FURY 16GB KIT DDR5 6000MT/s CL30 Beast Black EXPO',code:'KINGSTON FURY 16GB KIT DDR5 6000MT/S CL30 BEAST BLACK EXPO',short:'FURY BEAST',tone:'#16181b',ink:'#e6e8eb',type:'DDR5',sticks:2,price:8890,spec:['DDR5','6000 MT/s','CL30','2×8 GB']},
+ {id:'viper-elite5-w',cat:'ram',sold:0,alza:true,name:'Patriot Viper Elite 5 16GB DDR5 6000MT/s CL30 White',code:'PATRIOT VIPER ELITE 5 16GB DDR5 6000MT/S CL30 WHITE',short:'VIPER ELITE 5',tone:'#e6e8eb',ink:'#1b1d20',type:'DDR5',sticks:1,price:6390,spec:['DDR5','6000 MT/s','CL30','1×16 GB']},
+ {id:'xpg-lancer-blade',cat:'ram',sold:0,alza:true,name:'ADATA XPG 16GB DDR5 6000MT/s CL48 Lancer Blade RGB Black',code:'ADATA XPG 16GB DDR5 6000MT/S CL48 LANCER BLADE RGB BLACK',short:'LANCER BLADE',tone:'#1a1b1e',ink:'#e6e8eb',rgb:true,type:'DDR5',sticks:1,price:5899,spec:['DDR5','6000 MT/s','CL48','1×16 GB']},
+ {id:'fury-16-5200',cat:'ram',sold:0,alza:true,name:'Kingston FURY 16GB DDR5 5200MHz CL40 Beast Black',code:'KINGSTON FURY 16GB DDR5 5200MHZ CL40 BEAST BLACK',short:'FURY BEAST',tone:'#16181b',ink:'#e6e8eb',type:'DDR5',sticks:1,price:6789,spec:['DDR5','5200 MT/s','CL40','1×16 GB']},
+ {id:'fury-16-6000c30',cat:'ram',sold:0,alza:true,name:'Kingston FURY 16GB DDR5 6000MT/s CL30 Beast Black EXPO',code:'KINGSTON FURY 16GB DDR5 6000MT/S CL30 BEAST BLACK EXPO',short:'FURY BEAST',tone:'#16181b',ink:'#e6e8eb',type:'DDR5',sticks:1,price:8490,spec:['DDR5','6000 MT/s','CL30','1×16 GB']},
+ {id:'fury-rgb-16-6000',cat:'ram',sold:0,alza:true,name:'Kingston FURY 16GB DDR5 6000MT/s CL36 Beast RGB EXPO',code:'KINGSTON FURY 16GB DDR5 6000MT/S CL36 BEAST RGB EXPO',short:'FURY BEAST RGB',tone:'#16181b',ink:'#e6e8eb',rgb:true,type:'DDR5',sticks:1,price:8519,spec:['DDR5','6000 MT/s','CL36','1×16 GB']},
+ {id:'venom-16-6000c36',cat:'ram',sold:0,alza:true,name:'Patriot Viper Venom 16GB DDR5 6000MT/s CL36 AMD',code:'PATRIOT VIPER VENOM 16GB DDR5 6000MT/S CL36 AMD',short:'VIPER VENOM',tone:'#1d1f23',ink:'#e6e8eb',type:'DDR5',sticks:1,price:6190,spec:['DDR5','6000 MT/s','CL36','1×16 GB']},
+ {id:'fury-w-16-5600',cat:'ram',sold:0,alza:true,name:'Kingston FURY 16GB DDR5 5600MHz CL36 Beast White EXPO',code:'KINGSTON FURY 16GB DDR5 5600MHZ CL36 BEAST WHITE EXPO',short:'FURY BEAST',tone:'#e6e8eb',ink:'#1b1d20',type:'DDR5',sticks:1,price:7659,spec:['DDR5','5600 MT/s','CL36','1×16 GB']},
+ {id:'fury-16-6000c36',cat:'ram',sold:0,alza:true,name:'Kingston FURY 16GB DDR5 6000MT/s CL36 Beast Black EXPO',code:'KINGSTON FURY 16GB DDR5 6000MT/S CL36 BEAST BLACK EXPO',short:'FURY BEAST',tone:'#16181b',ink:'#e6e8eb',type:'DDR5',sticks:1,price:7899,spec:['DDR5','6000 MT/s','CL36','1×16 GB']},
+ {id:'ripjaws-s5-16',cat:'ram',sold:0,alza:true,name:'G.Skill 16GB DDR5 6000MT/s CL36 Ripjaws S5 Black',code:'G.SKILL 16GB DDR5 6000MT/S CL36 RIPJAWS S5 BLACK',short:'RIPJAWS S5',tone:'#202226',ink:'#e6e8eb',type:'DDR5',sticks:1,price:6899,spec:['DDR5','6000 MT/s','CL36','1×16 GB']},
+ {id:'tz5rgb-16',cat:'ram',sold:0,alza:true,name:'G.Skill 16GB DDR5 6000MT/s CL36 Trident Z5 RGB Black',code:'G.SKILL 16GB DDR5 6000MT/S CL36 TRIDENT Z5 RGB BLACK',short:'TRIDENT Z5 RGB',tone:'#2b2e33',ink:'#e6e8eb',rgb:true,type:'DDR5',sticks:1,price:6999,spec:['DDR5','6000 MT/s','CL36','1×16 GB']},
+ {id:'apacer-nox-16',cat:'ram',sold:0,alza:true,name:'Apacer NOX RGB 16GB DDR5 6000MHz CL38',code:'APACER NOX RGB 16GB DDR5 6000MHZ CL38',short:'NOX RGB',tone:'#3a3d42',ink:'#e6e8eb',rgb:true,type:'DDR5',sticks:1,price:5799,spec:['DDR5','6000 MT/s','CL38','1×16 GB']},
+ {id:'viper-elite5u-16',cat:'ram',sold:0,alza:true,name:'Patriot Viper RGB Elite 5 Ultra 16GB DDR5 6000MT/s CL36',code:'PATRIOT VIPER RGB ELITE 5 ULTRA 16GB DDR5 6000MT/S CL36',short:'VIPER ELITE 5',tone:'#141518',ink:'#e6e8eb',rgb:true,type:'DDR5',sticks:1,price:6490,spec:['DDR5','6000 MT/s','CL36','1×16 GB']},
+ {id:'steel-16k-3200',cat:'ram',sold:35,name:'Patriot Viper Steel 16 GB (2×8) DDR4-3200 CL16',code:'PVS416G320C6K',short:'VIPER STEEL',tone:'#7a7f87',ink:'#111214',type:'DDR4',sticks:2,price:3233,spec:['DDR4','3200 MT/s','CL16','2×8 GB']},
+ {id:'venomrgb-32-6000',cat:'ram',sold:28,name:'Patriot Viper Venom RGB 32 GB (2×16) DDR5-6000 CL30',code:'PVVR532G600C30K',short:'VENOM RGB',tone:'#3a3d42',ink:'#e6e8eb',rgb:true,type:'DDR5',sticks:2,price:12690,spec:['DDR5','6000 MT/s','RGB','2×16 GB']},
+ {id:'steel-16-3200',cat:'ram',sold:26,name:'Patriot Viper Steel 16 GB (1×16) DDR4-3200 CL16',code:'PVS416G320C6',short:'VIPER STEEL',tone:'#7a7f87',ink:'#111214',type:'DDR4',sticks:1,price:3030,spec:['DDR4','3200 MT/s','CL16','1×16 GB']},
+ {id:'fury-32-3200',cat:'ram',sold:25,name:'Kingston FURY Beast 32 GB (2×16) DDR4-3200 CL16',code:'KF432C16BB1K2/32',short:'FURY BEAST',tone:'#16181b',ink:'#e6e8eb',type:'DDR4',sticks:2,price:6789,spec:['DDR4','3200 MT/s','CL16','2×16 GB']},
+ {id:'fury-8-3200',cat:'ram',sold:17,name:'Kingston FURY Beast 8 GB (1×8) DDR4-3200 CL16',code:'KF432C16BB/8',short:'FURY BEAST',tone:'#16181b',ink:'#e6e8eb',type:'DDR4',sticks:1,price:2146,spec:['DDR4','3200 MT/s','CL16','1×8 GB']},
+ {id:'kingspec-16',cat:'ram',sold:16,name:'KingSpec 16 GB (1×16) DDR4-3200 CL20',code:'DDR4 16GB 3200 CL20',short:'KINGSPEC',tone:'#24543a',ink:'#e6e8eb',type:'DDR4',sticks:1,price:1998,spec:['DDR4','3200 MT/s','CL20','1×16 GB']},
+
+ /* Grafické karty */
+ {id:'rx9070-cl',cat:'gpu',sold:73,name:'ASRock Radeon RX 9070 Challenger 16GB',code:'RX9070 CL 16G',short:'RX 9070',tone:'#e03a3e',shroud:'#26282c',fans:3,len:290,tdp:220,price:17990,spec:['16 GB GDDR6','290 mm','220 W']},
+ {id:'rtx5060-ventus',cat:'gpu',sold:69,name:'MSI GeForce RTX 5060 Ventus 2X OC 8G',code:'RTX 5060 8G VENTUS 2X OC',short:'RTX 5060',tone:'#76b900',shroud:'#2a2d32',fans:2,len:197,tdp:145,price:10299,spec:['8 GB GDDR7','197 mm','145 W']},
+ {id:'rx9070xt-gocice',cat:'gpu',sold:56,name:'Gigabyte Radeon RX 9070 XT Gaming OC ICE 16G',code:'RX 9070 XT GAMING OC ICE 16G',short:'RX 9070 XT',tone:'#9fb6c9',shroud:'#e6e9ec',fans:3,len:288,tdp:340,price:21990,alza:true,spec:['16 GB GDDR6','288 mm','340 W']},
+ {id:'rx9070xt-cl',cat:'gpu',sold:56,name:'ASRock Radeon RX 9070 XT Challenger 16GB',code:'RX9070XT CL 16G',short:'RX 9070 XT',tone:'#e03a3e',shroud:'#26282c',fans:3,len:293,tdp:304,price:21624,spec:['16 GB GDDR6','293 mm','304 W']},
+ /* Alza.cz, AMD Radeon ze screenshotu 25. 10. 2026 (spotřeba podle AMD / výrobce) */
+ {id:'sp-9070gre-pulse',cat:'gpu',sold:0,alza:true,name:'Sapphire Pulse AMD Radeon RX 9070 GRE Gaming OC 12GB',code:'PULSE RX 9070 GRE GAMING OC 12GB',short:'RX 9070 GRE',tone:'#e03a3e',shroud:'#24262a',fans:2,len:280,tdp:220,price:15790,spec:['12 GB GDDR6','280 mm','220 W']},
+ {id:'asus-9070xt-prime',cat:'gpu',sold:0,alza:true,name:'ASUS Prime Radeon RX 9070 XT O16G',code:'PRIME-RX9070XT-O16G',short:'RX 9070 XT',tone:'#e03a3e',shroud:'#2e3137',fans:3,len:312,tdp:304,price:21990,spec:['16 GB GDDR6','312 mm','304 W']},
+ {id:'sp-9070xt-pulse',cat:'gpu',sold:0,alza:true,name:'Sapphire Pulse AMD Radeon RX 9070 XT Gaming 16G',code:'PULSE RX 9070 XT GAMING 16G',short:'RX 9070 XT',tone:'#e03a3e',shroud:'#24262a',fans:3,len:320,tdp:304,price:22790,spec:['16 GB GDDR6','320 mm','304 W']},
+ {id:'sp-9070xt-nitro',cat:'gpu',sold:0,alza:true,alzaRank:3,name:'Sapphire Nitro+ AMD Radeon RX 9070 XT Gaming OC 16G',code:'NITRO+ RX 9070 XT GAMING OC 16G',short:'RX 9070 XT',tone:'#e03a3e',shroud:'#2b2e33',fans:3,len:331,tdp:340,price:24990,spec:['16 GB GDDR6','331 mm','340 W']},
+ {id:'gb-9070gre-goc',cat:'gpu',sold:0,alza:true,name:'Gigabyte Radeon RX 9070 GRE Gaming OC 12G',code:'RX 9070 GRE GAMING OC 12G',short:'RX 9070 GRE',tone:'#e03a3e',shroud:'#2b2e33',fans:3,len:288,tdp:220,price:15790,spec:['12 GB GDDR6','288 mm','220 W']},
+ {id:'rx9060xt-cl',cat:'gpu',sold:47,name:'ASRock Radeon RX 9060 XT Challenger OC 16GB',code:'RX9060XT CL 16GO',short:'RX 9060 XT',tone:'#e03a3e',shroud:'#26282c',fans:2,len:249,tdp:180,price:15290,alza:true,spec:['16 GB GDDR6','270 mm','180 W']},
+ {id:'rx7600-dual',cat:'gpu',sold:38,name:'ASUS Dual Radeon RX 7600 8GB',code:'DUAL RX 7600 8G',short:'RX 7600',tone:'#c9ced5',shroud:'#2b2e33',fans:2,len:243,tdp:165,price:8590,spec:['8 GB GDDR6','243 mm','165 W']},
+ {id:'rtx3050-wf',cat:'gpu',sold:37,name:'Gigabyte GeForce RTX 3050 Windforce OC V2 6G',code:'GV-N3050WF2OCV2-6GD',short:'RTX 3050',tone:'#76b900',shroud:'#2a2d32',fans:2,len:191,tdp:70,price:6890,spec:['6 GB GDDR6','191 mm','70 W']},
+ {id:'rx9070-goc',cat:'gpu',sold:37,name:'Gigabyte Radeon RX 9070 Gaming OC 16G',code:'GV-R9070GAMING OC-16GD',short:'RX 9070',tone:'#e03a3e',shroud:'#2b2e33',fans:3,len:288,tdp:245,price:18490,spec:['16 GB GDDR6','288 mm','245 W']},
+ {id:'rx7900xt-goc',cat:'gpu',sold:36,name:'Gigabyte Radeon RX 7900 XT Gaming OC 20G',code:'GV-R79XTGAMING-OC-20GD',short:'RX 7900 XT',tone:'#e03a3e',shroud:'#2b2e33',fans:3,len:331,tdp:315,price:22490,spec:['20 GB GDDR6','331 mm','315 W']},
+ {id:'rtx5070-prime',cat:'gpu',sold:32,name:'ASUS Prime GeForce RTX 5070 OC 12GB',code:'PRIME-RTX5070-O12G',short:'RTX 5070',tone:'#76b900',shroud:'#2e3137',fans:3,len:304,tdp:250,price:23290,alza:true,spec:['12 GB GDDR7','304 mm','250 W']},
+ /* Alza.cz, NVIDIA ze screenshotu 25. 10. 2026 (spotřeba podle NVIDIA) */
+ {id:'gw-5060ti-python',cat:'gpu',sold:0,alza:true,name:'Gainward GeForce RTX 5060 Ti Python III 16G',code:'RTX 5060 Ti PYTHON III 16G',short:'RTX 5060 Ti',tone:'#76b900',shroud:'#2a2c30',fans:3,len:292,tdp:180,price:18199,spec:['16 GB GDDR7','292 mm','180 W']},
+ {id:'gw-5060ti-ghost',cat:'gpu',sold:0,alza:true,name:'Gainward GeForce RTX 5060 Ti Ghost 8G',code:'RTX 5060 Ti GHOST 8G',short:'RTX 5060 Ti',tone:'#76b900',shroud:'#2b2e33',fans:2,len:262,tdp:180,price:12999,spec:['8 GB GDDR7','262 mm','180 W']},
+ {id:'gb-5060-lp',cat:'gpu',sold:0,alza:true,name:'Gigabyte GeForce RTX 5060 OC Low Profile 8G',code:'RTX 5060 OC LOW PROFILE 8G',short:'RTX 5060 LP',tone:'#76b900',shroud:'#2a2d32',fans:3,len:182,tdp:145,price:12190,spec:['8 GB GDDR7','182 mm','145 W','nízký profil']},
+ {id:'asus-5070ti-prime',cat:'gpu',sold:0,alza:true,name:'ASUS Prime GeForce RTX 5070 Ti O16G',code:'PRIME-RTX5070TI-O16G',short:'RTX 5070 Ti',tone:'#76b900',shroud:'#2e3137',fans:3,len:306,tdp:300,price:34990,spec:['16 GB GDDR7','306 mm','300 W']},
+ {id:'msi-5070-trio',cat:'gpu',sold:0,alza:true,name:'MSI GeForce RTX 5070 12G Gaming Trio OC',code:'RTX 5070 12G GAMING TRIO OC',short:'RTX 5070',tone:'#76b900',shroud:'#1d1f23',fans:3,len:338,tdp:250,price:23390,spec:['12 GB GDDR7','338 mm','250 W']},
+ {id:'gb-5080-goc',cat:'gpu',sold:0,alza:true,alzaRank:5,name:'Gigabyte GeForce RTX 5080 Gaming OC 16G',code:'RTX 5080 GAMING OC 16G',short:'RTX 5080',tone:'#76b900',shroud:'#202226',fans:3,len:340,tdp:360,price:48990,spec:['16 GB GDDR7','340 mm','360 W']},
+ {id:'gb-5070ti-sff',cat:'gpu',sold:0,alza:true,name:'Gigabyte GeForce RTX 5070 Ti Windforce OC SFF 16G',code:'RTX 5070 Ti WINDFORCE OC SFF 16G',short:'RTX 5070 Ti',tone:'#76b900',shroud:'#2a2d32',fans:3,len:304,tdp:300,price:33390,spec:['16 GB GDDR7','304 mm','300 W','SFF']},
+
+ /* SSD M.2 */
+ {id:'nm620-1t',cat:'ssd',sold:196,name:'Lexar NM620 1 TB',code:'LNM620X001T-RNNNG',short:'NM620',cap:'1 TB',tone:'#1a1b1e',ink:'#f1f2f4',price:3947,spec:['PCIe 3.0 ×4','3300 MB/s','1 TB']},
+ {id:'990pro-2t',cat:'ssd',sold:124,name:'Samsung 990 PRO 2 TB',code:'MZ-V9P2T0BW',short:'990 PRO',cap:'2 TB',tone:'#18191c',ink:'#f1f2f4',price:11999,alza:true,form:'m2',spec:['PCIe 4.0 ×4','7450 MB/s','2 TB']},
+ /* Alza.cz, úložiště ze screenshotu 30. 10. 2026 */
+ {id:'s870evo-1t',cat:'ssd',sold:0,alza:true,form:'25',name:'Samsung 870 EVO 1TB',code:'SAMSUNG 870 EVO 1TB',short:'870 EVO',cap:'1 TB',tone:'#1b1c1f',ink:'#f1f2f4',price:6499,spec:['SSD 2,5" SATA','560 MB/s','1 TB']},
+ {id:'vi550-512',cat:'ssd',sold:0,alza:true,form:'25',name:'Verbatim Vi550 S3 2.5" SSD 512GB',code:'VERBATIM VI550 S3 2.5" SSD 512GB',short:'VI550 S3',cap:'512 GB',tone:'#1d1f23',ink:'#f1f2f4',price:1599,spec:['SSD 2,5" SATA','520 MB/s','512 GB']},
+ {id:'barracuda-2t',cat:'ssd',sold:0,alza:true,form:'35',name:'Seagate BarraCuda 2TB',code:'SEAGATE BARRACUDA 2TB',short:'BARRACUDA',cap:'2 TB',tone:'#1f7a4a',ink:'#ffffff',price:2890,spec:['HDD 3,5"','7200 ot/min','2 TB']},
+ {id:'nv3-1t',cat:'ssd',sold:0,alza:true,form:'m2',name:'Kingston NV3 1TB',code:'KINGSTON NV3 1TB',short:'NV3',cap:'1 TB',tone:'#1a1b1e',ink:'#f1f2f4',price:3689,spec:['M.2 PCIe 4.0','6000 MB/s','1 TB']},
+ {id:'s990-1t',cat:'ssd',sold:0,alza:true,form:'m2',name:'Samsung 990 1TB',code:'SAMSUNG 990 1TB',short:'990',cap:'1 TB',tone:'#18191c',ink:'#f1f2f4',price:3699,spec:['M.2 PCIe 4.0','7150 MB/s','1 TB']},
+ {id:'ironwolfpro-16t',cat:'ssd',sold:0,alza:true,form:'35',name:'Seagate IronWolf Pro 16TB',code:'SEAGATE IRONWOLF PRO 16TB',short:'IRONWOLF PRO',cap:'16 TB',tone:'#1b1c1f',ink:'#e4473d',price:17690,spec:['HDD 3,5"','7200 ot/min','16 TB']},
+ {id:'s990evoplus-1t',cat:'ssd',sold:0,alza:true,form:'m2',name:'Samsung 990 EVO Plus 1TB',code:'SAMSUNG 990 EVO PLUS 1TB',short:'990 EVO PLUS',cap:'1 TB',tone:'#18191c',ink:'#f1f2f4',price:5499,spec:['M.2 PCIe 4.0','7150 MB/s','1 TB']},
+ {id:'wdredplus-4t',cat:'ssd',sold:0,alza:true,form:'35',name:'WD Red Plus 4TB',code:'WD RED PLUS 4TB',short:'WD RED PLUS',cap:'4 TB',tone:'#b3262c',ink:'#ffffff',price:5579,spec:['HDD 3,5"','5400 ot/min','4 TB']},
+ {id:'su650-1t',cat:'ssd',sold:0,alza:true,form:'25',name:'ADATA Ultimate SU650 1TB',code:'ADATA ULTIMATE SU650 1TB',short:'SU650',cap:'1 TB',tone:'#1f5fa8',ink:'#ffffff',price:3039,spec:['SSD 2,5" SATA','520 MB/s','1 TB']},
+ {id:'renegade-g5-2t',cat:'ssd',sold:0,alza:true,form:'m2',name:'Kingston FURY Renegade G5 2TB',code:'KINGSTON FURY RENEGADE G5 2TB',short:'RENEGADE G5',cap:'2 TB',tone:'#141518',ink:'#f1f2f4',price:8990,spec:['M.2 PCIe 5.0','14700 MB/s','2 TB']},
+ {id:'ironwolf-8t',cat:'ssd',sold:0,alza:true,form:'35',name:'Seagate IronWolf 8TB CMR',code:'SEAGATE IRONWOLF 8TB CMR',short:'IRONWOLF',cap:'8 TB',tone:'#1b1c1f',ink:'#e4473d',price:8390,spec:['HDD 3,5"','7200 ot/min','8 TB']},
+ {id:'px500-128',cat:'ssd',sold:52,name:'Goodram PX500 G3 128 GB',code:'SSDPR-PX500-128-80-G3',short:'PX500 G3',cap:'128 GB',tone:'#1a1b1e',ink:'#f1f2f4',price:1001,spec:['PCIe 3.0 ×4','128 GB']},
+ {id:'vi560-256',cat:'ssd',sold:46,name:'Verbatim Vi560 S3 256 GB (M.2 SATA)',code:'VI560 S3 256GB',short:'VI560 S3',cap:'256 GB',tone:'#1d4f9a',ink:'#ffffff',price:1139,spec:['M.2 SATA','560 MB/s','256 GB']},
+ {id:'sn5100-1t',cat:'ssd',sold:36,name:'WD Blue SN5100 1 TB',code:'WDS100T5B0E',short:'SN5100',cap:'1 TB',tone:'#1f5fa8',ink:'#ffffff',price:4080,spec:['PCIe 4.0 ×4','7100 MB/s','1 TB']},
+ {id:'legend710-512',cat:'ssd',sold:34,name:'Adata Legend 710 512 GB',code:'ALEG-710-512GCS',short:'LEGEND 710',cap:'512 GB',tone:'#1a1b1e',ink:'#f1f2f4',price:2079,spec:['PCIe 3.0 ×4','2400 MB/s','512 GB']},
+ {id:'exceria-2t',cat:'ssd',sold:26,name:'Kioxia Exceria Basic 2 TB',code:'LSF10Z002TG8',short:'EXCERIA',cap:'2 TB',tone:'#ffffff',ink:'#1a1a1a',price:6090,spec:['PCIe 4.0 ×4','2 TB']},
+ {id:'ud90-1t',cat:'ssd',sold:21,name:'Silicon Power UD90 1 TB',code:'UD90 1TB',short:'UD90',cap:'1 TB',tone:'#1a1b1e',ink:'#f1f2f4',price:3615,spec:['PCIe 4.0 ×4','5000 MB/s','1 TB']},
+ {id:'nv3-500',cat:'ssd',sold:20,name:'Kingston NV3 500 GB',code:'SNV3S/500G',short:'NV3',cap:'500 GB',tone:'#1a1b1e',ink:'#f1f2f4',price:2449,spec:['PCIe 4.0 ×4','6000 MB/s','500 GB']},
+ {id:'ud90-2t',cat:'ssd',sold:12,name:'Silicon Power UD90 2 TB',code:'UD90 2TB',short:'UD90',cap:'2 TB',tone:'#1a1b1e',ink:'#f1f2f4',price:6332,spec:['PCIe 4.0 ×4','5000 MB/s','2 TB']},
+
+ /* Chladiče */
+ {id:'spartan5',cat:'cooler',sold:270,name:'Endorfy Spartan 5',code:'EY3A001',blade:'#3e444c',frame:'#16181b',height:132,tdpMax:160,sockets:ALL_SOCKETS,price:319,spec:['1× 120 mm','132 mm','do 160 W']},
+ {id:'spartan5-argb',cat:'cooler',sold:171,name:'Endorfy Spartan 5 ARGB',code:'EY3A002',blade:'#d8dce2',frame:'#16181b',height:132,tdpMax:160,sockets:ALL_SOCKETS,price:369,spec:['1× 120 mm ARGB','132 mm','do 160 W']},
+ {id:'ps120se',cat:'cooler',sold:116,name:'Thermalright Phantom Spirit 120 SE',code:'PS120SE',blade:'#4b525c',frame:'#141619',height:154,tdpMax:245,sockets:ALL_SOCKETS,price:1311,spec:['2× 120 mm','154 mm','7 trubic']},
+ {id:'lf3pro360',cat:'cooler',sold:87,name:'Arctic Liquid Freezer III Pro 360',code:'LIQUID FREEZER III PRO 360',aio:360,blade:'#3e444c',frame:'#16181b',height:55,tdpMax:300,sockets:ALL_SOCKETS,price:2099,spec:['AIO 360 mm','vodní','do 300 W']},
+ {id:'lf3pro360-argb',cat:'cooler',sold:76,name:'Arctic Liquid Freezer III Pro 360 A-RGB',code:'LIQUID FREEZER III PRO 360 A-RGB',aio:360,blade:'#d8dce2',frame:'#16181b',height:55,tdpMax:300,sockets:ALL_SOCKETS,price:2012,spec:['AIO 360 mm','A-RGB','do 300 W']},
+ {id:'fortis5-dual',cat:'cooler',sold:48,name:'Endorfy Fortis 5 Dual Fan',code:'FORTIS 5 DUAL FAN',blade:'#3e444c',frame:'#16181b',height:159,tdpMax:220,sockets:ALL_SOCKETS,price:849,spec:['2× 140 mm','159 mm','do 220 W']},
+ {id:'navis-f240',cat:'cooler',sold:41,name:'Endorfy Navis F240',code:'EY3B001',aio:240,blade:'#3e444c',frame:'#16181b',height:55,tdpMax:250,sockets:ALL_SOCKETS,price:1190,spec:['AIO 240 mm','vodní','do 250 W']},
+ {id:'e400-plus',cat:'cooler',sold:8,name:'DarkFlash E400 Plus White',code:'E400 PLUS',blade:'#e9ebee',frame:'#d2d6db',height:155,tdpMax:180,sockets:ALL_SOCKETS,price:738,spec:['1× 120 mm','155 mm','bílý']},
+ {id:'dn-d240',cat:'cooler',sold:6,name:'DarkFlash DN-D240 ARGB',code:'DN-D240',aio:240,blade:'#d8dce2',frame:'#16181b',height:55,tdpMax:220,sockets:ALL_SOCKETS,price:1594,spec:['AIO 240 mm','ARGB','vodní']},
+ {id:'nhu9s',cat:'cooler',sold:4,name:'Noctua NH-U9S',code:'NH-U9S',blade:'#c79a7a',frame:'#e6d5c3',height:125,tdpMax:140,sockets:ALL_SOCKETS,price:1757,spec:['1× 92 mm','125 mm','tichý']},
+
+ /* Zdroje */
+ {id:'a650bn',cat:'psu',sold:209,name:'MSI MAG A650BN',code:'MAG A650BN',short:'MAG A650BN',watt:650,rating:'80+ BRONZE',body:'#1d1f22',tone:'#b07a3c',ink:'#ffffff',price:1361,spec:['650 W','80+ Bronze','nemodulární']},
+ {id:'vero-l6-750',cat:'psu',sold:68,name:'Endorfy Vero L6 Bronze 750W',code:'VERO L6 750W',short:'VERO L6',watt:750,rating:'80+ BRONZE',body:'#1d1f22',tone:'#c9ced4',ink:'#1a1a1a',price:1513,spec:['750 W','80+ Bronze']},
+ {id:'supremo-fm6-850',cat:'psu',sold:56,name:'Endorfy Supremo FM6 850W',code:'SUPREMO FM6 850W',short:'SUPREMO FM6',watt:850,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:2779,spec:['850 W','80+ Gold','ATX 3.1','modulární']},
+ {id:'p750gm',cat:'psu',sold:44,name:'Gigabyte P750GM',code:'GP-P750GM',short:'P750GM',watt:750,rating:'80+ GOLD',body:'#1d1f22',tone:'#f0c24b',ink:'#1a1a1a',price:1719,spec:['750 W','80+ Gold','modulární']},
+ {id:'p650ss',cat:'psu',sold:35,name:'Gigabyte P650SS',code:'GP-P650SS',short:'P650SS',watt:650,rating:'80+ SILVER',body:'#1d1f22',tone:'#c9ced4',ink:'#1a1a1a',price:1189,spec:['650 W','80+ Silver']},
+ {id:'p650g',cat:'psu',sold:34,alza:true,name:'Gigabyte P650G PCIe 5.1',code:'GP-P650G',short:'P650G',watt:650,rating:'80+ GOLD',body:'#1d1f22',tone:'#f0c24b',ink:'#1a1a1a',price:1199,spec:['650 W','80+ Gold']},
+ {id:'a750gl',cat:'psu',sold:30,name:'MSI MAG A750GL PCIE5 II',code:'MAG A750GL PCIE5 II',short:'MAG A750GL',watt:750,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:2299,spec:['750 W','80+ Gold','ATX 3.1']},
+ {id:'p550ss-ice',cat:'psu',sold:26,name:'Gigabyte P550SS ICE (bílý)',code:'GP-P550SS ICE',short:'P550SS ICE',watt:550,rating:'80+ SILVER',body:'#e4e7ea',tone:'#9fb6c9',ink:'#1a1a1a',price:949,spec:['550 W','80+ Silver','bílý']},
+ {id:'elementum-e5',cat:'psu',sold:21,name:'Endorfy Elementum E5 550W',code:'ELEMENTUM E5 550W',short:'ELEMENTUM E5',watt:550,rating:'80+',body:'#1d1f22',tone:'#c9ced4',ink:'#1a1a1a',price:879,spec:['550 W','80+']},
+ {id:'p850gm',cat:'psu',sold:17,name:'Gigabyte P850GM',code:'GP-P850GM',short:'P850GM',watt:850,rating:'80+ GOLD',body:'#1d1f22',tone:'#f0c24b',ink:'#1a1a1a',price:1970,spec:['850 W','80+ Gold','modulární']},
+ /* Alza.cz, zdroje ze screenshotu 25. 10. 2026 */
+ {id:'rm850x-31',cat:'psu',sold:0,alza:true,name:'Corsair RM850x ATX 3.1',code:'CORSAIR RM850X ATX 3.1',short:'RM850x',watt:850,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:3290,spec:['850 W','80+ Gold','modulární']},
+ {id:'xpg-crii-850',cat:'psu',sold:0,alza:true,name:'ADATA XPG Core Reactor II VE 850W',code:'ADATA XPG CORE REACTOR II VE 850W',short:'CORE REACTOR II',watt:850,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:1999,spec:['850 W','80+ Gold','modulární']},
+ {id:'xpg-crii-750',cat:'psu',sold:0,alza:true,name:'ADATA XPG Core Reactor II VE 750W',code:'ADATA XPG CORE REACTOR II VE 750W',short:'CORE REACTOR II',watt:750,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:1699,spec:['750 W','80+ Gold','modulární']},
+ {id:'msi-a650be',cat:'psu',sold:0,alza:true,name:'MSI MAG A650BE',code:'MSI MAG A650BE',short:'MAG A650BE',watt:650,rating:'80+ BRONZE',body:'#1d1f22',tone:'#b07a3c',ink:'#ffffff',price:1499,spec:['650 W','80+ Bronze','modulární']},
+ {id:'deepcool-pn750m',cat:'psu',sold:0,alza:true,name:'DeepCool PN750M',code:'DEEPCOOL PN750M',short:'PN750M',watt:750,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:1529,spec:['750 W','80+ Gold','modulární']},
+ {id:'msi-a1250gs',cat:'psu',sold:0,alza:true,name:'MSI MPG A1250GS PCIE5',code:'MSI MPG A1250GS PCIE5',short:'MPG A1250GS',watt:1250,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:3299,spec:['1250 W','80+ Gold','modulární']},
+ {id:'rm750x-31',cat:'psu',sold:0,alza:true,name:'Corsair RM750x ATX 3.1',code:'CORSAIR RM750X ATX 3.1',short:'RM750x',watt:750,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:2990,spec:['750 W','80+ Gold','modulární']},
+ {id:'cm-elite-gold-850',cat:'psu',sold:0,alza:true,name:'Cooler Master ELITE Gold 850',code:'COOLER MASTER ELITE GOLD 850',short:'ELITE GOLD',watt:850,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:1899,spec:['850 W','80+ Gold','modulární']},
+ {id:'raijintek-cratos-850',cat:'psu',sold:0,alza:true,name:'Raijintek CRATOS 850 BLACK',code:'RAIJINTEK CRATOS 850 BLACK',short:'CRATOS 850',watt:850,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:1899,spec:['850 W','80+ Gold','modulární']},
+ {id:'gb-p550b',cat:'psu',sold:0,alza:true,name:'Gigabyte P550B',code:'GIGABYTE P550B',short:'P550B',watt:550,rating:'80+ BRONZE',body:'#1d1f22',tone:'#b07a3c',ink:'#ffffff',price:1019,spec:['550 W','80+ Bronze']},
+ {id:'asrock-pro650b',cat:'psu',sold:0,alza:true,name:'ASRock PRO-650B',code:'ASROCK PRO-650B',short:'PRO-650B',watt:650,rating:'80+ BRONZE',body:'#1d1f22',tone:'#b07a3c',ink:'#ffffff',price:999,spec:['650 W','80+ Bronze']},
+ {id:'bq-pp13m-1000',cat:'psu',sold:0,alza:true,name:'Be quiet! Pure Power 13 M 1000W',code:'BE QUIET! PURE POWER 13 M 1000W',short:'PURE POWER 13 M',watt:1000,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:3989,spec:['1000 W','80+ Gold','modulární']},
+ {id:'gb-p450b',cat:'psu',sold:0,alza:true,name:'Gigabyte P450B',code:'GIGABYTE P450B',short:'P450B',watt:450,rating:'80+ BRONZE',body:'#1d1f22',tone:'#b07a3c',ink:'#ffffff',price:839,spec:['450 W','80+ Bronze']},
+ {id:'rm650e-2025',cat:'psu',sold:0,alza:true,name:'Corsair RM650e (2025)',code:'CORSAIR RM650E (2025)',short:'RM650e',watt:650,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:1999,spec:['650 W','80+ Gold','modulární']},
+ {id:'montech-beta2-750',cat:'psu',sold:0,alza:true,name:'Montech BETA 2 750',code:'MONTECH BETA 2 750',short:'BETA 2',watt:750,rating:'80+ BRONZE',body:'#1d1f22',tone:'#b07a3c',ink:'#ffffff',price:1229,spec:['750 W','80+ Bronze']},
+ /* Alza.cz, zdroje SFX ze screenshotu 1. 11. 2026 */
+ {id:'corsair-sf750',cat:'psu',sold:0,alza:true,pform:'SFX',name:'Corsair SF750 (2024)',code:'SF750 (2024)',short:'SF750',watt:750,rating:'80+ PLATINUM',body:'#1d1f22',tone:'#c9d1d9',ink:'#1a1a1a',price:3899,spec:['750 W','80+ Platinum','SFX','modulární']},
+ {id:'fsp-sfx-pro-450',cat:'psu',sold:0,alza:true,pform:'SFX',name:'FSP Fortron SFX PRO 450W',code:'SFX PRO 450W',short:'SFX PRO',watt:450,rating:'80+ BRONZE',body:'#1d1f22',tone:'#b07a3c',ink:'#ffffff',price:1459,spec:['450 W','80+ Bronze','SFX']},
+ {id:'fsp-dagger-pro-650',cat:'psu',sold:0,alza:true,pform:'SFX',name:'FSP Fortron DAGGER PRO 650W',code:'DAGGER PRO 650W',short:'DAGGER PRO',watt:650,rating:'80+ GOLD',body:'#1d1f22',tone:'#e7b84a',ink:'#1a1a1a',price:2699,spec:['650 W','80+ Gold','SFX','modulární']},
+
+ /* Skříně */
+ {id:'vako',cat:'case',dim:[440,200,333],sold:221,name:'Krux Vako RGB',code:'KRX0132',short:'VAKO',style:'mesh',body:'#1b1c1f',front:'#2a2c30',shroud:'#222428',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:310,coolerMax:159,price:949,spec:['ATX','GPU do 310 mm','chladič do 159 mm']},
+ {id:'ventum200',cat:'case',dim:[440,216,373],sold:115,name:'Endorfy Ventum 200 Air',code:'EY2A002',short:'VENTUM 200',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:315,coolerMax:161,price:979,spec:['ATX','GPU do 315 mm','chladič do 161 mm']},
+ {id:'arx700',cat:'case',dim:[486,228,472],sold:107,name:'Endorfy Arx 700 Air',code:'ARX 700 AIR',short:'ARX 700',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:410,coolerMax:179,price:1931,spec:['ATX','GPU do 410 mm','chladič do 179 mm']},
+ {id:'signum300',cat:'case',dim:[448,207,414],sold:81,name:'Endorfy Signum 300 Solid',code:'EY2A003',short:'SIGNUM 300',style:'solid',body:'#18191b',front:'#232528',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:325,coolerMax:161,price:728,spec:['ATX','GPU do 325 mm','chladič do 161 mm']},
+ {id:'regnum400',cat:'case',dim:[472,220,442],sold:64,name:'Endorfy Regnum 400 ARGB',code:'EY2A009',short:'REGNUM 400',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:370,coolerMax:162,price:1454,spec:['ATX','GPU do 370 mm','chladič do 162 mm']},
+ {id:'dk352',cat:'case',dim:[450,200,390],sold:50,name:'DarkFlash DK352 Plus',code:'DK352 PLUS',short:'DK352 PLUS',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:330,coolerMax:160,approx:true,price:937,spec:['ATX','GPU do ~330 mm','4× ARGB']},
+ {id:'helio',cat:'case',dim:[408,220,370],sold:43,name:'Krux Helio',code:'HELIO',short:'HELIO',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['mATX','ITX'],gpuMax:300,coolerMax:150,approx:true,price:1121,spec:['mATX','GPU do ~300 mm','mini tower']},
+ {id:'palum',cat:'case',dim:[453,235,450],sold:37,name:'Krux Palum',code:'KRXD008',short:'PALUM',style:'wood',body:'#1b1c1f',front:'#8a5a35',shroud:'#25272b',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:395,coolerMax:181,price:1716,spec:['ATX','GPU do 395 mm','dřevěný předek']},
+ {id:'m305',cat:'case',psuPos:'rear',dim:[387,195,325],sold:26,name:'DarkFlash M305 (bílá)',code:'M305',short:'M305',style:'mesh',body:'#e7e9ec',front:'#d3d7dc',shroud:'#d6dade',shroudInk:'rgba(0,0,0,.45)',forms:['mATX','ITX'],gpuMax:300,coolerMax:155,approx:true,price:577,spec:['mATX','GPU do ~300 mm','bílá']},
+ {id:'a290',cat:'case',dim:[433,190,320],sold:20,name:'DarkFlash A290',code:'A290',short:'A290',style:'glass',body:'#18191b',front:'#9fc3da',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:320,coolerMax:160,approx:true,price:573,spec:['ATX','GPU do ~320 mm','prosklená']},
+ /* Heureka.cz, Mini-ITX skříň 1. 11. 2026 */
+ {id:'chieftec-ix01b',cat:'case',dim:[63,197,220],sold:0,name:'Chieftec Compact Series 85W IX-01B-85W',code:'IX-01B-85W',short:'IX-01B',style:'solid',body:'#18191b',front:'#232528',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.45)',forms:['ITX'],gpuMax:0,coolerMax:30,approx:true,psuBuilt:85,price:2099,spec:['Mini-ITX','zdroj 85 W v balení','bez grafiky','chladič do ~30 mm']},
+ {id:'chieftec-cn01b',cat:'case',psuPos:'rear',dim:[195,260,356],flat:true,sold:0,name:'Chieftec CN-01B-OP Cube Tower',code:'CN-01B-OP',short:'CN-01B',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.45)',forms:['ITX'],gpuMax:0,coolerMax:70,approx:true,price:1418,spec:['Mini-ITX','bez grafiky','chladič do ~70 mm','1× 2,5" + 1× 3,5"']},
+ /* Alza.cz, skříně ze screenshotu 25. 10. 2026 */
+ {id:'evolveo-scorpio',cat:'case',dim:[491,238,472],sold:0,alza:true,name:'EVOLVEO Scorpio',code:'EVOLVEO SCORPIO',short:'SCORPIO',style:'glass',body:'#18191b',front:'#9fc3da',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:415,coolerMax:180,price:1939,spec:['ATX','GPU do 415 mm','chladič do 180 mm']},
+ {id:'montech-xr',cat:'case',dim:[450,230,435],sold:0,alza:true,name:'Montech XR Black',code:'MONTECH XR BLACK',short:'XR',style:'glass',body:'#18191b',front:'#9fc3da',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:420,coolerMax:175,price:1399,spec:['ATX','GPU do 420 mm','chladič do 175 mm']},
+ {id:'evolveo-m5',cat:'case',shroud:false,dim:[402,205,392],sold:0,alza:true,name:'EVOLVEO M5',code:'EVOLVEO M5',short:'M5',style:'glass',body:'#18191b',front:'#9fc3da',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['mATX','ITX'],gpuMax:345,coolerMax:160,price:1090,spec:['mATX','GPU do 345 mm','chladič do 160 mm']},
+ {id:'montech-x3-w',cat:'case',dim:[480,210,370],sold:0,alza:true,name:'Montech X3 MESH White',code:'MONTECH X3 MESH WHITE',short:'X3 MESH',style:'mesh',body:'#e7e9ec',front:'#d3d7dc',shroud:'#d6dade',shroudInk:'rgba(0,0,0,.45)',forms:['ATX','mATX','ITX'],gpuMax:305,coolerMax:160,price:1269,spec:['ATX','GPU do 305 mm','chladič do 160 mm']},
+ {id:'xpg-valor-air-plus',cat:'case',dim:[482,200,400],sold:0,alza:true,name:'ADATA XPG Valor Air Plus Black',code:'ADATA XPG VALOR AIR PLUS BLACK',short:'VALOR AIR PLUS',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:340,coolerMax:160,price:699,spec:['ATX','GPU do 340 mm','chladič do 160 mm']},
+ {id:'fd-north',cat:'case',dim:[469,215,447],sold:0,alza:true,name:'Fractal Design North Charcoal Black TG Dark',code:'FRACTAL DESIGN NORTH CHARCOAL BLACK TG DARK',short:'NORTH',style:'wood',body:'#18191b',front:'#8a5a35',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:355,coolerMax:170,price:3729,spec:['ATX','GPU do 355 mm','chladič do 170 mm']},
+ {id:'xpg-valor-air',cat:'case',dim:[460,210,371],sold:0,alza:true,name:'ADATA XPG Valor Air Black',code:'ADATA XPG VALOR AIR BLACK',short:'VALOR AIR',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['mATX','ITX'],gpuMax:305,coolerMax:166,price:899,spec:['mATX','GPU do 305 mm','chladič do 166 mm']},
+ {id:'gamemax-storm2',cat:'case',dim:[449,200,386],sold:0,alza:true,name:'GameMax Storm 2 AB',code:'GAMEMAX STORM 2 AB',short:'STORM 2',style:'glass',body:'#18191b',front:'#9fc3da',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:330,coolerMax:155,price:989,spec:['ATX','GPU do 330 mm','chladič do 155 mm']},
+ {id:'deepcool-cg530',cat:'case',psuPos:'rear',dim:[399,285,440],sold:0,alza:true,name:'DeepCool CG530 4F',code:'DEEPCOOL CG530 4F',short:'CG530',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:410,coolerMax:160,price:1599,spec:['ATX','GPU do 410 mm','chladič do 160 mm']},
+ {id:'lancool-217',cat:'case',dim:[503,238,482],sold:0,alza:true,name:'Lian Li LANCOOL 217 Black',code:'LIAN LI LANCOOL 217 BLACK',short:'LANCOOL 217',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:380,coolerMax:180,price:3039,spec:['ATX','GPU do 380 mm','chladič do 180 mm']},
+ {id:'fd-focus2',cat:'case',dim:[450.5,215,471.5],sold:0,alza:true,name:'Fractal Design Focus 2 Black TG Clear Tint',code:'FRACTAL DESIGN FOCUS 2 BLACK TG CLEAR TINT',short:'FOCUS 2',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:405,coolerMax:170,price:1839,spec:['ATX','GPU do 405 mm','chladič do 170 mm']},
+ {id:'evolveo-ursus',cat:'case',dim:[403,220,460],sold:0,alza:true,name:'EVOLVEO Ursus Black',code:'EVOLVEO URSUS BLACK',short:'URSUS',style:'glass',body:'#18191b',front:'#9fc3da',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:420,coolerMax:175,price:1790,spec:['ATX','GPU do 420 mm','chladič do 175 mm']},
+ {id:'nzxt-h5-2024',cat:'case',dim:[465,225,430],sold:0,alza:true,name:'NZXT H5 Flow (2024) All Black',code:'NZXT H5 FLOW (2024) ALL BLACK',short:'H5 FLOW',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:410,coolerMax:170,price:1899,spec:['ATX','GPU do 410 mm','chladič do 170 mm']},
+ {id:'xpg-invader-x-mini',cat:'case',dim:[460,210,359],sold:0,alza:true,name:'ADATA XPG Invader X Mini Black',code:'ADATA XPG INVADER X MINI BLACK',short:'INVADER X MINI',style:'glass',body:'#18191b',front:'#9fc3da',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['mATX','ITX'],gpuMax:330,coolerMax:166,price:999,spec:['mATX','GPU do 330 mm','chladič do 166 mm']},
+ {id:'cm-mb400l',cat:'case',dim:[400,210,396],sold:0,alza:true,name:'Cooler Master MasterBox MB400L ODD',code:'COOLER MASTER MASTERBOX MB400L ODD',short:'MB400L',style:'solid',body:'#18191b',front:'#232528',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['mATX','ITX'],gpuMax:344,coolerMax:167,price:839,spec:['mATX','GPU do 344 mm','chladič do 167 mm']},
+ {id:'fd-meshify2xl',cat:'case',dim:[566,240,600],sold:0,alza:true,name:'Fractal Design Meshify 2 XL Black TG Light',code:'FRACTAL DESIGN MESHIFY 2 XL BLACK TG LIGHT',short:'MESHIFY 2 XL',style:'mesh',body:'#18191b',front:'#2a2c30',shroud:'#1f2124',shroudInk:'rgba(255,255,255,.4)',forms:['ATX','mATX','ITX'],gpuMax:549,coolerMax:185,price:5259,spec:['ATX','GPU do 549 mm','chladič do 185 mm']},
+ /* Monitory */
+ {id:'philips-27m2n3501pa',cat:'monitor',sold:0,alza:true,name:'27" Philips 27M2N3501PA/00',code:'27M2N3501PA/00',short:'27M2N3501PA',size:27,res:[2560,1440],hz:260,panel:'IPS',color:'white',price:4290,spec:['27"','QHD 2560×1440','260 Hz','IPS','pivot, výškově nastavitelný']},
+];
+// outer size (height × width × depth) shown on every case card
+PARTS.forEach(p=>{ if(p.cat==='case'&&p.dim) p.spec=[...(p.spec||[]),`V×Š×H ${p.dim.map(v=>Math.round(v)).join('×')} mm`]; });
+
+const BY=Object.fromEntries(PARTS.map(p=>[p.id,p]));
+
+const KEY='pcux-build-v1'; // fresh storage key: the page starts with an empty build
+const START={};
+
+let build={...START}, tab='mb', popCat=null, dragId=null;
+let ramN=0;
+try{ const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s&&typeof s==='object'){ build={}; for(const k in s) if(BY[s[k]]&&BY[s[k]].cat===k) build[k]=s[k]; ramN=+s._ramN||0; } }catch(e){}
+function save(){ try{localStorage.setItem(KEY,JSON.stringify({...build,_ramN:ramN}))}catch(e){} }
+// a boxed CPU brings its own cooler; it counts as filled until a separate cooler is fitted
+const boxCool=()=>!build.cooler&&build.cpu&&BY[build.cpu].boxCooler||null;
+// a case with its own power adapter counts as having a PSU
+const builtPsu=()=>!build.psu&&build.case&&BY[build.case].psuBuilt?{watt:BY[build.case].psuBuilt,name:`Adaptér ${BY[build.case].psuBuilt} W ze skříně`}:null;
+const noGpuCase=()=>!build.gpu&&build.case&&BY[build.case].gpuMax===0;
+const effPsu=b=>b.psu||(b.case&&b.case.psuBuilt?{watt:b.case.psuBuilt,name:`Adaptér ${b.case.psuBuilt} W`}:null);
+const ramSlots=()=>build.mb&&BY[build.mb].form==='ITX'?2:4;
+const ramMods=()=>build.ram?(ramN||BY[build.ram].sticks):0;
+const ramPrice=p=>Math.round(p.price*ramMods()/p.sticks);
+
+const fmt=n=>new Intl.NumberFormat('cs-CZ').format(n)+' Kč';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const parts=b=>{const o={};for(const k in b) if(BY[b[k]]) o[k]=BY[b[k]];return o};
+
+/* ---------- drawings ---------- */
+function fan(cx,cy,r,blade,frame){
+  let s=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${frame}"/><circle cx="${cx}" cy="${cy}" r="${r-2}" fill="#0f1114"/>`;
+  const by=(cy-r*0.52).toFixed(1);
+  for(let i=0;i<7;i++) s+=`<ellipse cx="${cx}" cy="${by}" rx="${(r*0.2).toFixed(1)}" ry="${(r*0.4).toFixed(1)}" fill="${blade}" transform="rotate(${(i*51.43).toFixed(1)} ${cx} ${cy}) rotate(24 ${cx} ${by})"/>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="${(r*0.3).toFixed(1)}" fill="#24282e"/><circle cx="${cx}" cy="${cy}" r="${(r*0.12).toFixed(1)}" fill="${blade}"/>`;
+  return s;
+}
+function cpuDraw(p){
+  let s=`<rect x="3" y="3" width="94" height="94" rx="5" fill="${PCB}"/>`;
+  for(let k=0;k<11;k++){const x=8+k*8;s+=`<rect x="${x}" y="6" width="3" height="2" fill="${GOLD}"/><rect x="${x}" y="92" width="3" height="2" fill="${GOLD}"/>`;}
+  s+=`<rect x="15" y="15" width="70" height="70" rx="7" fill="#b7bec7"/><rect x="18" y="18" width="64" height="64" rx="5" fill="#d3d8de"/>`;
+  s+=`<text x="50" y="42" text-anchor="middle" font-family="Chakra Petch,sans-serif" font-weight="700" font-size="12" fill="${p.tone}">${esc(p.brand)}</text>`;
+  s+=`<text x="50" y="55" text-anchor="middle" font-family="Chakra Petch,sans-serif" font-weight="600" font-size="6.6" fill="#343a43">${esc(p.model)}</text>`;
+  s+=`<text x="50" y="69" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="4.6" fill="#69717c">${esc(p.code)}</text>`;
+  return s+`<path d="M6 94 L13 94 L6 87Z" fill="${GOLD}"/>`;
+}
+function stockCoolerDraw(cpu){
+  const intel=cpu.brand==='intel';
+  let s=intel?`<circle cx="70" cy="70" r="64" fill="#2a2d32"/><circle cx="70" cy="70" r="60" fill="#c3c8ce"/>`:`<rect x="8" y="8" width="124" height="124" rx="62" fill="#1c1e22"/>`;
+  s+=fan(70,70,52,intel?'#3a3f46':'#4a4f57','#111316');
+  s+=`<circle cx="70" cy="70" r="15" fill="${intel?'#0068b5':'#c8102e'}"/><text x="70" y="74" text-anchor="middle" font-family="Chakra Petch,sans-serif" font-weight="700" font-size="10" fill="#fff">${intel?'intel':'AMD'}</text>`;
+  return s;
+}
+function coolerDraw(p){
+  if(p.aio){
+    let s=`<path d="M70 70 C 70 20, 110 10, 140 6" fill="none" stroke="#111316" stroke-width="7" stroke-linecap="round"/><path d="M82 70 C 86 30, 118 22, 140 18" fill="none" stroke="#111316" stroke-width="7" stroke-linecap="round"/>`;
+    s+=`<rect x="28" y="28" width="84" height="84" rx="16" fill="${p.frame}" stroke="rgba(255,255,255,.08)"/>`;
+    s+=`<circle cx="70" cy="70" r="30" fill="#0f1114"/><circle cx="70" cy="70" r="24" fill="none" stroke="${p.blade}" stroke-width="3"/>`;
+    s+=`<text x="70" y="74" text-anchor="middle" font-family="Chakra Petch,sans-serif" font-weight="700" font-size="11" fill="${p.blade}">${p.aio}</text>`;
+    return s;
+  }
+  let s=`<rect x="4" y="4" width="132" height="132" rx="10" fill="#b4bcc5"/>`;
+  for(let y=9;y<134;y+=5) s+=`<line x1="8" x2="132" y1="${y}" y2="${y}" stroke="#97a0aa" stroke-width=".8"/>`;
+  for(let i=0;i<4;i++) s+=`<circle cx="${31+i*26}" cy="9" r="4" fill="#b8692e"/>`;
+  s+=`<rect x="14" y="14" width="112" height="112" rx="16" fill="${p.frame}"/>`;
+  for(const [x,y] of [[22,22],[118,22],[22,118],[118,118]]) s+=`<circle cx="${x}" cy="${y}" r="3.5" fill="rgba(0,0,0,.25)"/>`;
+  return s+fan(70,70,50,p.blade,p.frame);
+}
+const MBH={ATX:412,mATX:330,ITX:230}; // proportional to 305/244/170 mm
+const MBW={ATX:330,mATX:330,ITX:230};
+// board PCB is lifted toward a slate blue so it stands out from the dark case interior
+function lift(hex){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,c=(v,a)=>Math.min(255,v+a).toString(16).padStart(2,'0');return '#'+c(r,26)+c(g,36)+c(b,52);}
+function mbDraw(p,inCase){
+  if(p.form==='ITX') return itxDraw(p,inCase);
+  const h=MBH[p.form];
+  const pcb=inCase?lift(p.pcb):p.pcb;
+  let s=`<rect x="0" y="0" width="330" height="${h}" rx="6" fill="${pcb}"${inCase?' stroke="rgba(255,255,255,.22)" stroke-width="1.5"':''}/>`;
+  s+=`<path d="M175 105 H220 V40 M175 125 H226 V232 M58 170 H118 V196 M250 ${h-40} H300 V184 M30 150 V228" fill="none" stroke="#b8692e" stroke-opacity=".35" stroke-width="1.2"/>`;
+  for(const [x,y] of [[12,12],[318,12],[12,h-12],[318,h-12],[200,170]]) s+=`<circle cx="${x}" cy="${y}" r="4.5" fill="#b9963f"/><circle cx="${x}" cy="${y}" r="2" fill="${pcb}"/>`;
+  s+=`<rect x="4" y="22" width="44" height="122" rx="4" fill="${p.tone}"/>`;
+  for(let y=32;y<140;y+=10) s+=`<line x1="10" x2="42" y1="${y}" y2="${y}" stroke="rgba(0,0,0,.22)" stroke-width="2"/>`;
+  s+=`<rect x="56" y="10" width="164" height="34" rx="4" fill="${p.tone}"/>`;
+  for(let x=64;x<216;x+=8) s+=`<line x1="${x}" x2="${x}" y1="14" y2="40" stroke="rgba(0,0,0,.22)" stroke-width="2"/>`;
+  s+=`<rect x="80" y="60" width="90" height="90" rx="3" fill="#3a414b" stroke="#8d96a1" stroke-width="1.5"/><rect x="90" y="70" width="70" height="70" fill="#262b32"/><path d="M175 66 V146" stroke="#c4cad1" stroke-width="2.5" stroke-linecap="round"/>`;
+  for(let i=0;i<4;i++){const x=232+i*17;s+=`<rect x="${x}" y="30" width="10" height="200" rx="2" fill="#0d1014" stroke="#5a626d"/><rect x="${x-1}" y="26" width="12" height="6" rx="1" fill="#c4cad1"/><rect x="${x-1}" y="228" width="12" height="6" rx="1" fill="#c4cad1"/>`;}
+  s+=`<text x="${232+17*1.5+5}" y="246" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7" fill="rgba(255,255,255,.4)">A1 A2 B1 B2</text>`;
+  s+=`<rect x="312" y="110" width="13" height="64" rx="2" fill="#e8ebee"/>`;
+  s+=`<rect x="70" y="200" width="140" height="26" rx="3" fill="none" stroke="#6c7480" stroke-dasharray="3 3"/><rect x="66" y="203" width="6" height="20" fill="#0d1014"/>`;
+  s+=`<rect x="20" y="256" width="210" height="10" rx="2" fill="#0d1014" stroke="#aab2bb" stroke-width="1.5"/>`;
+  s+=`<text x="22" y="277" font-family="IBM Plex Mono,monospace" font-size="8" font-weight="500" fill="rgba(255,255,255,.75)">PCIe ×16</text>`;
+  if(h>=330) s+=`<rect x="20" y="294" width="80" height="8" rx="2" fill="#0d1014" stroke="#5a626d"/>`;
+  if(h>=380) s+=`<rect x="20" y="334" width="210" height="8" rx="2" fill="#0d1014" stroke="#5a626d"/>`;
+  s+= h>=330 ? `<rect x="248" y="${h-96}" width="56" height="56" rx="5" fill="${p.tone}"/><rect x="256" y="${h-88}" width="40" height="40" rx="3" fill="rgba(0,0,0,.18)"/>`
+             : `<rect x="250" y="${h-48}" width="38" height="34" rx="4" fill="${p.tone}"/>`;
+  for(let i=0;i<3;i++) s+=`<rect x="316" y="${h-86+i*12}" width="10" height="8" rx="1" fill="#1d2229" stroke="#5a626d"/>`;
+  s+=`<text x="16" y="${h-14}" font-family="IBM Plex Mono,monospace" font-size="10" fill="rgba(255,255,255,.55)">${esc(p.short)} · ${p.form}</text>`;
+  return s;
+}
+// Mini-ITX board, 17 x 17 cm: socket, 2 DIMM slots, one PCIe x16, M.2 below the socket
+function itxDraw(p,inCase){
+  const W=230,h=230, pcb=inCase?lift(p.pcb):p.pcb;
+  let s=`<rect x="0" y="0" width="${W}" height="${h}" rx="6" fill="${pcb}"${inCase?' stroke="rgba(255,255,255,.22)" stroke-width="1.5"':''}/>`;
+  s+=`<path d="M125 60 H160 V30 M125 100 H165 V190 M40 140 V200" fill="none" stroke="#b8692e" stroke-opacity=".35" stroke-width="1.2"/>`;
+  for(const [x,y] of [[10,10],[220,10],[10,220],[220,220]]) s+=`<circle cx="${x}" cy="${y}" r="4" fill="#b9963f"/><circle cx="${x}" cy="${y}" r="1.8" fill="${pcb}"/>`;
+  s+=`<rect x="4" y="20" width="22" height="100" rx="3" fill="${p.tone}"/>`;
+  for(let y=28;y<118;y+=9) s+=`<line x1="8" x2="22" y1="${y}" y2="${y}" stroke="rgba(0,0,0,.22)" stroke-width="2"/>`;
+  s+=`<rect x="30" y="14" width="110" height="24" rx="3" fill="${p.tone}"/>`;
+  for(let x=36;x<138;x+=7) s+=`<line x1="${x}" x2="${x}" y1="17" y2="35" stroke="rgba(0,0,0,.22)" stroke-width="2"/>`;
+  s+=`<rect x="30" y="45" width="90" height="90" rx="3" fill="#3a414b" stroke="#8d96a1" stroke-width="1.5"/><rect x="40" y="55" width="70" height="70" fill="#262b32"/><path d="M125 51 V131" stroke="#c4cad1" stroke-width="2.5" stroke-linecap="round"/>`;
+  for(let i=0;i<2;i++){const x=175+i*17;s+=`<rect x="${x}" y="25" width="10" height="180" rx="2" fill="#0d1014" stroke="#5a626d"/><rect x="${x-1}" y="21" width="12" height="6" rx="1" fill="#c4cad1"/><rect x="${x-1}" y="203" width="12" height="6" rx="1" fill="#c4cad1"/>`;}
+  s+=`<text x="188" y="219" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7" fill="rgba(255,255,255,.4)">A2 B2</text>`;
+  s+=`<rect x="212" y="60" width="13" height="56" rx="2" fill="#e8ebee"/>`;
+  s+=`<rect x="14" y="165" width="120" height="20" rx="3" fill="none" stroke="#6c7480" stroke-dasharray="3 3"/><rect x="10" y="168" width="6" height="14" fill="#0d1014"/>`;
+  s+=`<rect x="14" y="204" width="120" height="10" rx="2" fill="#0d1014" stroke="#aab2bb" stroke-width="1.5"/>`;
+  s+=`<text x="140" y="213" font-family="IBM Plex Mono,monospace" font-size="8" font-weight="500" fill="rgba(255,255,255,.75)">PCIe ×16</text>`;
+  s+=`<text x="12" y="155" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="rgba(255,255,255,.55)">${esc(p.short)} · ITX</text>`;
+  return s;
+}
+function ramStick(p){
+  let s=`<rect x="0" y="6" width="200" height="22" fill="${PCB}"/>`;
+  for(let i=0;i<46;i++){const x=3+i*4.2;if(x>92&&x<104)continue;s+=`<rect x="${x.toFixed(1)}" y="28" width="2.6" height="6" fill="${GOLD}"/>`;}
+  s+=`<rect x="0" y="0" width="200" height="27" rx="3" fill="${p.tone}" stroke="rgba(0,0,0,.3)"/>`;
+  if(p.rgb) ['#ff4d6d','#ffb703','#3ddc97','#4cc9f0','#9d4edd'].forEach((c,i)=>s+=`<rect x="${i*40}" y="0" width="40" height="5" fill="${c}"/>`);
+  else s+=`<rect x="2" y="1" width="196" height="4" rx="2" fill="rgba(255,255,255,.16)"/>`;
+  s+=`<path d="M120 9 L190 9 L184 23 L114 23Z" fill="rgba(255,255,255,.08)"/>`;
+  s+=`<text x="10" y="20" font-family="Chakra Petch,sans-serif" font-weight="700" font-size="10" fill="${p.ink}">${esc(p.short)}</text>`;
+  s+=`<text x="190" y="20" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="7" fill="${p.ink}" opacity=".7">${p.type}</text>`;
+  return s;
+}
+const gpuW=p=>Math.round(120+p.len*0.85);
+function gpuDraw(p){
+  const W=gpuW(p);
+  let s=`<rect x="44" y="0" width="150" height="8" fill="${GOLD}"/><rect x="66" y="0" width="3" height="8" fill="${PCB}"/>`;
+  s+=`<rect x="22" y="6" width="${W-40}" height="10" fill="${PCB}"/>`;
+  s+=`<rect x="0" y="8" width="10" height="88" rx="1" fill="#b8bec6"/>`;
+  for(let y=16;y<88;y+=8) s+=`<rect x="3" y="${y}" width="4" height="5" rx="1" fill="#8e959e"/>`;
+  s+=`<rect x="10" y="13" width="${W-10}" height="83" rx="10" fill="${p.shroud}" stroke="rgba(0,0,0,.35)"/>`;
+  s+=`<path d="M20 21 H${W-14}" stroke="${p.tone}" stroke-width="2.5" stroke-linecap="round"/>`;
+  s+=`<rect x="${W-50}" y="2" width="26" height="11" rx="2" fill="#0d0f12"/>`;
+  const n=p.fans, sp=(W-36)/n, r=Math.min(32,sp/2-3);
+  for(let i=0;i<n;i++) s+=fan(Math.round(26+sp*(i+.5)),57,r,'#454b54','#121417');
+  s+=`<text x="${W-14}" y="91" text-anchor="end" font-family="Chakra Petch,sans-serif" font-weight="600" font-size="9" fill="#c9ced5">${esc(p.short)}</text>`;
+  return s;
+}
+function diskDraw(p){ return p.form==='25'?ssd25Draw(p):p.form==='35'?hddDraw(p):ssdDraw(p); }
+// 2,5" SATA SSD shown flat between the CPU and the PCIe slot, name written on top
+function ssd25Flat(p){
+  let s=`<rect x="0" y="1" width="200" height="38" rx="4" fill="${p.tone}" stroke="rgba(255,255,255,.25)"/>`;
+  s+=`<rect x="0" y="12" width="6" height="16" fill="#0d1014"/><rect x="194" y="15" width="6" height="10" fill="#0d1014"/>`;
+  s+=`<text x="100" y="25" text-anchor="middle" font-family="Chakra Petch,sans-serif" font-weight="700" font-size="14" fill="${p.ink}">${esc(p.short)} · ${esc(p.cap)}</text>`;
+  return s;
+}
+function ssd25Draw(p){
+  let s=`<rect x="10" y="8" width="180" height="114" rx="8" fill="${p.tone}" stroke="rgba(0,0,0,.35)"/>`;
+  s+=`<rect x="22" y="20" width="156" height="90" rx="5" fill="rgba(255,255,255,.06)"/>`;
+  s+=`<text x="100" y="62" text-anchor="middle" font-family="Chakra Petch,sans-serif" font-weight="700" font-size="22" fill="${p.ink}">${esc(p.short)}</text>`;
+  s+=`<text x="100" y="88" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="13" fill="${p.ink}" opacity=".8">${esc(p.cap)} · SSD</text>`;
+  return s;
+}
+function hddDraw(p){
+  let s=`<rect x="6" y="4" width="188" height="122" rx="6" fill="#a7adb5" stroke="rgba(0,0,0,.35)"/>`;
+  for(const [x,y] of [[16,14],[184,14],[16,116],[184,116]]) s+=`<circle cx="${x}" cy="${y}" r="3.5" fill="#7b828c"/>`;
+  s+=`<rect x="26" y="16" width="148" height="98" rx="4" fill="${p.tone}"/>`;
+  s+=`<rect x="26" y="16" width="148" height="22" rx="4" fill="rgba(0,0,0,.25)"/>`;
+  s+=`<text x="100" y="32" text-anchor="middle" font-family="Chakra Petch,sans-serif" font-weight="700" font-size="13" fill="${p.ink}">${esc(p.short)}</text>`;
+  s+=`<text x="100" y="80" text-anchor="middle" font-family="Chakra Petch,sans-serif" font-weight="700" font-size="28" fill="${p.ink}">${esc(p.cap)}</text>`;
+  s+=`<text x="100" y="102" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="${p.ink}" opacity=".75">HDD 3,5"</text>`;
+  return s;
+}
+function ssdDraw(p){
+  let s=`<rect x="0" y="4" width="194" height="32" rx="3" fill="#1b4d36"/>`;
+  s+=`<rect x="0" y="6" width="12" height="28" fill="${GOLD}"/><rect x="0" y="11" width="12" height="3" fill="#1b4d36"/>`;
+  s+=`<rect x="20" y="10" width="26" height="20" rx="2" fill="#2b2f36"/>`;
+  s+=`<rect x="54" y="7" width="128" height="26" rx="2" fill="${p.tone}"/>`;
+  s+=`<text x="62" y="25" font-family="Chakra Petch,sans-serif" font-weight="700" font-size="12" fill="${p.ink}">${esc(p.cap)}</text>`;
+  s+=`<text x="176" y="24" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="${p.ink}" opacity=".75">${esc(p.short)}</text>`;
+  return s+`<circle cx="194" cy="20" r="5" fill="none" stroke="${GOLD}" stroke-width="2"/>`;
+}
+function psuDraw(p){
+  let s=`<rect x="0" y="0" width="200" height="110" rx="6" fill="${p.body}" stroke="rgba(0,0,0,.4)"/>`;
+  s+=`<circle cx="58" cy="55" r="44" fill="#121417"/>`;
+  for(const r of [38,30,22]) s+=`<circle cx="58" cy="55" r="${r}" fill="none" stroke="#4a5059" stroke-width="1.6"/>`;
+  s+=`<path d="M14 55 H102 M58 11 V99" stroke="#4a5059" stroke-width="1.6"/><circle cx="58" cy="55" r="9" fill="#2a2e34"/>`;
+  s+=`<rect x="116" y="18" width="74" height="74" rx="4" fill="${p.tone}"/>`;
+  s+=`<text x="153" y="52" text-anchor="middle" font-family="Chakra Petch,sans-serif" font-weight="700" font-size="19" fill="${p.ink}">${p.watt}W</text>`;
+  s+=`<text x="153" y="66" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7" fill="${p.ink}">${p.rating}</text>`;
+  s+=`<text x="153" y="81" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="6.5" fill="${p.ink}" opacity=".75">${esc(p.short)}</text>`;
+  return s;
+}
+function frontPanel(p,x,y,w,h){
+  let s='';
+  if(p.style==='wood'){ s+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="#15171a"/>`; for(let i=0;i<4;i++) s+=`<rect x="${x+2+i*(w-4)/4}" y="${y+2}" width="${(w-4)/4-2}" height="${h-4}" rx="1.5" fill="${p.front}"/>`; }
+  else if(p.style==='glass'){ s+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${p.front}" opacity=".45" stroke="rgba(0,0,0,.25)"/>`; }
+  else if(p.style==='solid'){ s+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${p.front}" stroke="rgba(255,255,255,.12)"/>`; }
+  else { s+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${p.front}"/>`; for(let yy=y+5;yy<y+h-2;yy+=5) for(let xx=x+4;xx<x+w-2;xx+=5) s+=`<circle cx="${xx}" cy="${yy}" r="1.2" fill="#0d0e10"/>`; }
+  return s;
+}
+function monitorDraw(p){ // front view: bezel, lit screen, stand
+  const white=p.color==='white', fr=white?'#eef1f4':'#16181c', st=white?'#dfe3e8':'#2a2d33';
+  return `<rect x="70" y="122" width="60" height="6" rx="3" fill="${st}"/><path d="M92 96h16l-3 28h-10z" fill="${st}"/>
+  <rect x="8" y="8" width="184" height="106" rx="4" fill="${fr}"/><rect x="12" y="12" width="176" height="96" rx="2" fill="#0d3b52"/>
+  <path d="M12 12h176v40c-50 18-110 10-176 34z" fill="#1aa3a8" opacity=".55"/><path d="M12 108l70-96h40l-70 96z" fill="#fff" opacity=".07"/>
+  <text x="100" y="66" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-weight="700" font-size="22" fill="#ffffff">${p.size}"</text>
+  <text x="100" y="86" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#cfeff2">${p.hz} Hz · ${p.panel}</text>`; }
+function caseThumb(p){
+  let s=`<rect x="12" y="6" width="136" height="184" rx="8" fill="${p.body}" stroke="rgba(0,0,0,.3)"/>`;
+  s+=`<rect x="22" y="18" width="98" height="160" rx="4" fill="#12161b"/>`;
+  s+=`<rect x="30" y="26" width="62" height="82" rx="2" fill="#22272e"/><rect x="30" y="96" width="82" height="14" rx="2" fill="#30343a"/><rect x="22" y="140" width="98" height="38" rx="0" fill="${p.shroud}"/>`;
+  s+=`<path d="M22 18 L64 18 L30 178 L22 178Z" fill="#fff" opacity=".07"/>`;
+  s+=frontPanel(p,125,14,20,168);
+  return s+`<rect x="22" y="189" width="22" height="6" rx="2" fill="#0e0f11"/><rect x="116" y="189" width="22" height="6" rx="2" fill="#0e0f11"/>`;
+}
+function thumb(p){
+  const v={cpu:['0 0 100 100',cpuDraw(p)],cooler:['0 0 140 140',p.cat==='cooler'?coolerDraw(p):''],
+   mb:[`0 0 ${MBW[p.form]||330} ${MBH[p.form]||412}`,p.cat==='mb'?mbDraw(p):''],ram:['0 0 200 76',p.cat==='ram'?`<g>${ramStick(p)}</g><g transform="translate(0 42)">${ramStick(p)}</g>`:''],
+   gpu:[`0 0 ${p.cat==='gpu'?gpuW(p):300} 96`,p.cat==='gpu'?gpuDraw(p):''],ssd:[p.form&&p.form!=='m2'?'0 0 200 130':'0 0 200 40',p.cat==='ssd'?diskDraw(p):''],
+   psu:['0 0 200 110',p.cat==='psu'?psuDraw(p):''],case:['0 0 160 200',p.cat==='case'?caseThumb(p):''],monitor:['0 0 200 132',p.cat==='monitor'?monitorDraw(p):'']}[p.cat];
+  return `<svg viewBox="${v[0]}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${p.cat==='cpu'?cpuDraw(p):v[1]}</svg>`;
+}
+
+/* ---------- logic ---------- */
+// rough draw of the parts actually placed; nothing placed = 0 W
+function estimate(b){ let w=0;
+  if(b.mb) w+=b.mb.form==="ITX"?15:30;   // board, chipset, USB
+  if(b.cpu) w+=b.cpu.tdp;
+  if(b.gpu) w+=b.gpu.tdp;
+  if(b.ram) w+=5*(ramMods()||1);          // about 5 W per module
+  if(b.ssd) w+=b.ssd.form==='35'?8:b.ssd.form==='25'?3:6;
+  if(b.cooler) w+=b.cooler.aio?10:4;
+  if(b.case) w+=b.case.psuBuilt?0:8;   // case fans
+  return w; }
+const recPSU=e=>Math.ceil(e*1.3/50)*50;
+function checks(b){
+  const o=[], add=(level,text,cats,short,block)=>o.push({level,text,cats,short,block});
+  const {cpu,mb,ram,gpu,cooler}=b, cs=b.case, psu=effPsu(b);
+  if(cs&&cs.psuBuilt&&b.psu) add('err',`Skříň má vlastní zdroj ${cs.psuBuilt} W, jiný zdroj se do ní nevejde`,['psu','case'],'Vlastní zdroj',true);
+  if(cpu&&mb) cpu.socket===mb.socket?add('ok',`Patice ${cpu.socket} sedí`,['cpu','mb']):add('err',`Procesor má patici ${cpu.socket}, deska ${mb.socket}`,['cpu','mb'],'Jiná patice',true);
+  if(ram&&mb) ram.type===mb.ram?add('ok',`Paměť ${ram.type} sedí do desky`,['ram','mb']):add('err',`Deska bere ${mb.ram}, paměť je ${ram.type}`,['ram','mb'],`Deska chce ${mb.ram}`,true);
+  if(mb&&cs) cs.forms.includes(mb.form)?add('ok',`Deska ${mb.form} se vejde do skříně`,['mb','case']):add('err',`Skříň pojme jen ${cs.forms.join(', ')}, deska je ${mb.form}`,['mb','case'],'Nevejde se',true);
+  if(gpu&&cs&&!cs.gpuMax) add('err','Skříň nemá místo pro grafickou kartu',['gpu','case'],'Bez místa',true);
+  else if(gpu&&cs) gpu.len<=cs.gpuMax?add('ok',`Grafika ${gpu.len} mm, místo ${cs.gpuMax} mm`,['gpu','case']):add('err',`Grafika má ${gpu.len} mm, skříň pojme ${cs.gpuMax} mm`,['gpu','case'],'Moc dlouhá',true);
+  if(cooler&&cs) cooler.height<=cs.coolerMax?add('ok',`Chladič ${cooler.height} mm, místo ${cs.coolerMax} mm`,['cooler','case']):add('err',`Chladič má ${cooler.height} mm, skříň pojme ${cs.coolerMax} mm`,['cooler','case'],'Moc vysoký',true);
+  if(cooler&&cpu){
+    if(!cooler.sockets.includes(cpu.socket)) add('err',`Chladič nepodporuje patici ${cpu.socket}`,['cooler','cpu'],'Jiná patice',true);
+    else if(cpu.tdp>cooler.tdpMax) add('warn',`Chladič uchladí ${cooler.tdpMax} W, procesor má ${cpu.tdp} W`,['cooler','cpu'],'Slabý chladič');
+    else add('ok',`Chladič zvládne ${cpu.tdp} W procesoru`,['cooler','cpu']);
+  }
+  if(cs&&cpu&&cpu.boxCooler&&!cooler&&cs.coolerMax<55) add('warn',`Přibalený chladič procesoru je na tuto skříň moc vysoký (max. ${cs.coolerMax} mm), vyber nízký chladič`,['cooler','case','cpu'],'Nízká skříň');
+  if(cpu&&!cpu.igpu&&!gpu) add('err','Procesor nemá integrovanou grafiku, bez grafické karty nebude obraz',['cpu'],'Chce grafiku');
+  if(psu){ const e=estimate(b), r=recPSU(e);
+    if(psu.watt<e) add('err',`Zdroj ${psu.watt} W nestačí na odběr ≈ ${e} W`,['psu','gpu','cpu'],'Slabý zdroj');
+    else if(psu.watt<r) add('warn',`Zdroj ${psu.watt} W je na hraně, doporučeno ${r} W`,['psu','gpu','cpu'],'Zdroj na hraně');
+    else add('ok',`Zdroj ${psu.watt} W stačí (doporučeno ${r} W)`,['psu']);
+  }
+  return o;
+}
+function issueFor(p){
+  const b=parts(build); b[p.cat]=p;
+  const list=checks(b).filter(c=>c.level!=='ok'&&c.short!=='Chce grafiku'&&c.cats.includes(p.cat));
+  return list.find(c=>c.level==='err')||list[0]||null;
+}
+
+/* ---------- render ---------- */
+const $=id=>document.getElementById(id);
+function ghost(x,y,w,h,label,rx=6){return `<rect class="ghost" x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}"/><text class="ghost-t" x="${x+w/2}" y="${y+h/2}" text-anchor="middle" dominant-baseline="middle">${label}</text>`;}
+function zone(cat,inner,[x,y,w,h],title){
+  return `<g class="zone${popCat===cat?' pop':''}${build[cat]?' filled':''}" data-cat="${cat}" tabindex="0" role="button" aria-label="${esc(title)}"><title>${esc(title)}</title>${inner}<rect class="zone-hit" x="${x}" y="${y}" width="${w}" height="${h}" rx="8"/></g>`;
+}
+const nest=(x,y,w,h,vb,inner,par='xMidYMid meet')=>`<svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="${vb}" preserveAspectRatio="${par}" overflow="visible">${inner}</svg>`;
+const tl=(cat,p)=>p?`${CAT[cat].label}: ${p.name} (${p.code})`:`${CAT[cat].label}: prázdné, přetáhni sem díl`;
+
+function cable(d,w,col='#1b1e23'){return `<path d="${d}" fill="none" stroke="#07080a" stroke-width="${w+3}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="${Math.max(1,w/5)}" stroke-dasharray="2 4" stroke-linecap="round" stroke-linejoin="round"/>`;}
+// where things sit on the stage for each board size (stage units)
+function LAY(form,G){
+  const py=G.psuY, rx=G.x1-69;
+  if(form==='ITX') return {mb:[70,70,230,230], cpu:[100,115], cooler:[75,90], ram:{x:245,y:95,len:180,zone:[238,88,40,194]}, m2:[84,235,120,20], gpu:[82,268],
+    atx24:{conn:[283,120,14,56],path:`M242 ${py+2} V${py-26} H330 V148 H297`}, eps:{conn:[76,76,26,10],path:`M90 ${py+2} V${py-22} H56 V66 H89 V76`}, slots:2, rx, py};
+  return {mb:[70,70,330,MBH[form]||412], cpu:[150,130], cooler:[125,105], ram:{x:302,y:100,len:200,zone:[296,94,72,212]}, m2:[140,270,140,26], gpu:[82,320],
+    atx24:{conn:[380,178,17,68],path:`M242 ${py+2} V${py-26} H432 V212 H398`}, eps:{conn:[126,60,30,12],path:`M90 ${py+2} V${py-22} H56 V58 H140 V66`}, slots:4, rx, py};
+}
+// case outline: a Micro ATX case is drawn smaller than an ATX case (about 0.9x), centred on the mat
+function CASEG(c){
+  if(c&&c.psuBuilt) return {x0:24,y0:24,x1:334,y1:334,psuY:1000,ox:70,oy:126,mini:true};
+  if(c&&!c.forms.includes('mATX')&&!c.forms.includes('ATX')) return {x0:24,y0:24,x1:440,y1:480,psuY:362,ox:68,oy:68}; // Mini-ITX cube with its own PSU bay
+  if(c&&!c.forms.includes('ATX')) return {x0:24,y0:24,x1:516,y1:566,psuY:438,ox:30,oy:27};
+  return {x0:24,y0:24,x1:576,y1:620,psuY:502,ox:0,oy:0};
+}
+let CASE_R=CASEG(null);
+function cableMain(L){
+  let s='<g pointer-events="none">';
+  const [ax,ay,aw,ah]=L.atx24.conn, [ex,ey,ew,eh]=L.eps.conn;
+  s+=cable(L.atx24.path,12);   // 24-pin ATX
+  s+=`<rect x="${ax}" y="${ay}" width="${aw}" height="${ah}" rx="3" fill="#121418" stroke="#4a515b"/>`;
+  s+=cable(L.eps.path,8);   // 8-pin EPS for the CPU
+  s+=`<rect x="${ex}" y="${ey}" width="${ew}" height="${eh}" rx="2" fill="#121418" stroke="#4a515b"/>`;
+  return s+'</g>';
+}
+function cableGpu(W,gx,gy,L){
+  const cx=gx+W-37;
+  return `<g pointer-events="none">${cable(`M${cx} ${gy-2} V${gy-18} H${L.rx} V${L.py+2}`,9)}<rect x="${cx-15}" y="${gy-6}" width="30" height="10" rx="2" fill="#121418" stroke="#4a515b"/></g>`;
+}
+function renderStage(){ B3.sync(); }
+function renderStage2D(){
+  const b=parts(build); let s='';
+  // case
+  const G=CASEG(b.case); CASE_R=G;
+  const {x0,y0,x1,y1,psuY}=G, cw=x1-x0, ch=y1-y0, shY=psuY-18;
+  $('rig').setAttribute('viewBox',`${-G.ox} ${-G.oy} 600 640`);
+  if(b.case){ const c=b.case;
+    let inner=`<rect x="${x0}" y="${y0}" width="${cw}" height="${ch}" rx="18" fill="${c.body}" stroke="rgba(0,0,0,.4)" stroke-width="2"/>`;
+    inner+=`<rect x="${x0+16}" y="${y0+16}" width="${cw-32}" height="${ch-32}" rx="10" fill="#12161b"/>`;
+    if(G.mini){ for(let y=y0+30;y<y1-30;y+=12) for(let x=x1-14;x<x1-4;x+=6) inner+=`<circle cx="${x}" cy="${y}" r="1.6" fill="#000" opacity=".5"/>`; inner+=`<text x="${x1-28}" y="${y0+12}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="10" fill="${c.shroudInk}">${esc(c.short)}</text>`; }
+    else {
+    for(let i=0;i<7;i++) inner+=`<rect x="44" y="${shY-152+i*20}" width="14" height="14" rx="2" fill="#262b32"/>`;
+    inner+=`<rect x="44" y="80" width="18" height="150" rx="3" fill="#1e2329"/>`;
+    inner+=`<path d="M40 ${shY} H${x1-16} V${y1-26} Q${x1-16} ${y1-16} ${x1-26} ${y1-16} H50 Q40 ${y1-16} 40 ${y1-26}Z" fill="${c.shroud}"/>`;
+    for(let x=320;x<x1-36;x+=14) inner+=`<rect x="${x}" y="${shY+16}" width="6" height="40" rx="3" fill="rgba(0,0,0,.25)"/>`;
+    inner+=`<text x="${x1-28}" y="${y0+12}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="10" fill="${c.shroudInk}">${esc(c.short)}</text>`;
+    const bays=Math.max(2,Math.floor((shY-70)/130));
+    for(let i=0;i<bays;i++){const y=70+i*130; inner+=`<rect x="${x1-62}" y="${y}" width="34" height="120" rx="4" fill="#1a1d21"/>`; for(let k=0;k<6;k++) inner+=`<path d="M${x1-58} ${y+12+k*18} L${x1-32} ${y+20+k*18}" stroke="#3a4048" stroke-width="3" stroke-linecap="round"/>`; inner+=`<rect x="${x1-50}" y="${y+52}" width="10" height="16" rx="2" fill="#2b3037"/>`;}
+    }
+    s+=zone('case',inner,[x0,y0,cw,ch],tl('case',c));
+  } else s+=zone('case',`<rect class="ghost" x="${x0}" y="${y0}" width="${cw}" height="${ch}" rx="18"/><text class="ghost-t" x="${x1-24}" y="50" text-anchor="end">Skříň</text>`,[x0,y0,cw,ch],tl('case'));
+  // board (sizes proportional: ATX 30,5 x 24,4 cm, mATX 24,4 x 24,4 cm, Mini-ITX 17 x 17 cm)
+  const L=LAY(b.mb&&b.mb.form,{...G,psuY:G.psuY+(b.psu&&b.psu.pform==='SFX'?25:0)}); // cables start at the PSU top
+  if(b.mb){const [mx,my,mw,mh]=L.mb; s+=zone('mb',nest(mx,my,mw,mh,`0 0 ${mw} ${mh}`,mbDraw(b.mb,true)),[mx,my,mw,mh],tl('mb',b.mb));}
+  else if(G.mini) s+=zone('mb',`<rect class="ghost" x="70" y="70" width="230" height="230" rx="6"/><text class="ghost-t" x="185" y="185" text-anchor="middle">Mini-ITX deska</text>`,[70,70,230,230],tl('mb'));
+  else s+=zone('mb',`<rect class="ghost" x="70" y="70" width="330" height="412" rx="6"/><text class="ghost-t" x="235" y="440" text-anchor="middle">Základní deska</text>`,[70,70,330,412],tl('mb'));
+  const onBoard=c=>b[c]||b.mb;
+  // storage
+  const [sx,sy,sw,sh]=L.m2;
+  if(b.ssd&&b.ssd.form==='35'&&!G.mini) s+=zone('ssd',nest(276,psuY+6,164,84,'0 0 200 130',diskDraw(b.ssd)),[276,psuY+6,164,84],tl('ssd',b.ssd));
+  else if(b.ssd&&b.ssd.form!=='m2') s+=zone('ssd',nest(sx,sy-4,sw,sh+8,'0 0 200 40',ssd25Flat(b.ssd),'none'),[sx,sy-4,sw,sh+8],tl('ssd',b.ssd));
+  else if(onBoard('ssd')) s+=zone('ssd',b.ssd?nest(sx,sy,sw,sh,'0 0 200 40',ssdDraw(b.ssd),'none'):ghost(sx,sy,sw,sh,'SSD M.2',3),[sx,sy,sw,sh],tl('ssd',b.ssd));
+  // cpu
+  const [cx,cy]=L.cpu;
+  if(onBoard('cpu')) s+=zone('cpu',b.cpu?nest(cx,cy,90,90,'0 0 100 100',cpuDraw(b.cpu)):ghost(cx,cy,90,90,'CPU',4),[cx,cy,90,90],tl('cpu',b.cpu));
+  // cooler
+  const [kx,ky]=L.cooler;
+  if(b.cooler) s+=zone('cooler',nest(kx,ky,140,140,'0 0 140 140',coolerDraw(b.cooler)),[kx,ky,140,140],tl('cooler',b.cooler));
+  else if(boxCool()) { /* boxed cooler: counted as present, not drawn over the CPU */ }
+  else if(b.mb) s+=zone('cooler',`<circle class="ghost" cx="${kx+70}" cy="${ky+70}" r="72" fill="none" style="fill:none"/><text class="ghost-t" x="${kx+70}" y="${ky+131}" text-anchor="middle" font-size="11">Chladič</text>`,[kx-2,ky-2,144,144],tl('cooler'));
+  // ram
+  const R=L.ram, order=L.slots===2?[0,1]:[1,3,0,2];
+  if(b.ram){ let inner=''; for(const i of order.slice(0,ramMods())){const x=R.x+i*17; inner+=`<g transform="translate(${x+11} ${R.y}) rotate(90)"><svg width="${R.len}" height="11" viewBox="0 0 200 34" preserveAspectRatio="none">${ramStick(b.ram)}</svg></g>`;}
+    s+=zone('ram',inner,R.zone,tl('ram',b.ram)); }
+  else if(b.mb){const [zx,zy,zw,zh]=R.zone; s+=zone('ram',ghost(zx+2,zy+2,zw-4,zh-4,'RAM',4),R.zone,tl('ram'));}
+  if(b.psu&&b.mb&&!G.mini) s+=cableMain(L);
+  // gpu
+  const [gx,gy]=L.gpu;
+  if(b.gpu){const W=gpuW(b.gpu); s+=zone('gpu',nest(gx,gy,W,96,`0 0 ${W} 96`,gpuDraw(b.gpu)),[gx,gy,W,96],tl('gpu',b.gpu)); if(b.psu) s+=cableGpu(W,gx,gy,L);}
+  else if(b.mb&&!G.mini&&!(b.case&&b.case.gpuMax===0)) s+=zone('gpu',ghost(gx,gy,400,90,'Grafická karta'),[gx,gy,400,90],tl('gpu'));
+  // psu
+  if(G.mini&&b.case){ // external power adapter of a mini case, drawn beside it
+    const ax=x1+30, ay=y1-70;
+    s+=`<g pointer-events="none"><path d="M${x1-20} ${y1-40} C ${x1+5} ${y1-40}, ${ax-20} ${ay+25}, ${ax} ${ay+25}" fill="none" stroke="#0b0c0e" stroke-width="5" stroke-linecap="round"/>
+      <rect x="${ax}" y="${ay}" width="130" height="50" rx="8" fill="#1a1b1e" stroke="rgba(255,255,255,.18)"/>
+      <text x="${ax+65}" y="${ay+31}" text-anchor="middle" font-family="Chakra Petch,sans-serif" font-weight="700" font-size="16" fill="#d6dbe1">${b.case.psuBuilt} W</text></g>`;
+  }
+  const sfx=b.psu&&b.psu.pform==='SFX', pw=sfx?158:190, ph=sfx?71:96, pyy=psuY+(96-ph);
+  if(!G.mini)
+  s+=zone('psu',b.psu?nest(70,pyy,pw,ph,'0 0 200 110',psuDraw(b.psu),'none'):ghost(70,psuY,190,96,'Zdroj'),b.psu?[70,pyy,pw,ph]:[70,psuY,190,96],tl('psu',b.psu));
+  if(b.case) s+=`<path d="M40 40 L220 40 L70 ${y1-16} L40 ${y1-16}Z" fill="#fff" opacity=".045" pointer-events="none"/>`;
+  $('rig').innerHTML=s;
+  $('hint').innerHTML='Přetáhni komponenty sem, nebo klikni na <b>Vložit</b>.';
+}
+
+const ICONS={
+  monitor:'<path d="M27 29 30 30.2 30 38 27 36.8Z" fill="#4a515c"/><path d="M19 39 30 34.5 41 39 30 43.5Z" fill="#5a626e"/><path d="M10 6 13 4.5 47 18.5 44 20Z" fill="#3a404a"/><path d="M44 20 47 18.5 47 34.5 44 36Z" fill="#2b3038"/><path d="M10 6 44 20 44 36 10 22Z" fill="#1b1f25"/><path d="M12.5 8.8 41.5 20.8 41.5 33 12.5 21Z" fill="#3d7bd6"/><path d="M12.5 8.8 41.5 20.8 41.5 25 12.5 13Z" fill="#6aa2ee" opacity=".55"/>',
+  case:'<path d="M16 10 32 3 48 10 48 36 32 43 16 36Z" fill="#232a33"/><path d="M32 17 48 10 48 36 32 43Z" fill="#2e3742"/><path d="M16 10 32 17 48 10 32 3Z" fill="#3a4552"/><path d="M34 20 46 14.5 46 33 34 38.5Z" fill="#8fb6d6" opacity=".45"/>',
+  mb:'<path d="M6 24 32 11 58 24 32 37Z" fill="#1f5b6a"/><path d="M6 24 32 37 32 40 6 27Z" fill="#163f4a"/><path d="M32 37 58 24 58 27 32 40Z" fill="#12343d"/><path d="M26 20 33 16.5 40 20 33 23.5Z" fill="#c4cad1"/><path d="M40 26 50 21 51 21.5 41 26.5Z" fill="#0d1014"/><path d="M43 27.5 53 22.5 54 23 44 28Z" fill="#0d1014"/><path d="M14 26 26 20 27 20.5 15 26.5Z" fill="#0d1014"/>',
+  cpu:'<path d="M12 24 32 14 52 24 32 34Z" fill="#2f8a52"/><path d="M12 24 32 34 32 37 12 27Z" fill="#1f6a3d"/><path d="M32 34 52 24 52 27 32 37Z" fill="#185532"/><path d="M20 24 32 18 44 24 32 30Z" fill="#e8ebee"/><path d="M20 24 32 30 32 31.5 20 25.5Z" fill="#b9c0c8"/><path d="M32 30 44 24 44 25.5 32 31.5Z" fill="#a0a8b1"/>',
+  cooler:'<path d="M16 14 32 6 48 14 48 34 32 42 16 34Z" fill="#c6ccd3"/><path d="M32 22 48 14 48 34 32 42Z" fill="#9fa8b2"/><path d="M16 14 32 22 48 14 32 6Z" fill="#2a2f37"/><circle cx="32" cy="14" r="5.5" fill="#596170"/><g stroke="#7f8995" stroke-width="1"><path d="M18 19 30 25M18 23 30 29M18 27 30 33M18 31 30 37"/></g>',
+  ram:'<g><path d="M8 30 44 12 44 18 8 36Z" fill="#2c6b46"/><path d="M8 30 44 12 46 13 10 31Z" fill="#3f8f5f"/></g><g transform="translate(10 4)"><path d="M8 30 44 12 44 18 8 36Z" fill="#2c6b46"/><path d="M8 30 44 12 46 13 10 31Z" fill="#3f8f5f"/></g><path d="M10 33 13 31.5M16 30 19 28.5M22 27 25 25.5M28 24 31 22.5" stroke="#d4a94a" stroke-width="1.6"/>',
+  gpu:'<path d="M4 24 40 6 60 16 24 34Z" fill="#3a4049"/><path d="M24 34 60 16 60 23 24 41Z" fill="#8d96a2"/><path d="M24 37.5 60 19.5" stroke="#c9eaff" stroke-width=".9" opacity=".85"/><path d="M4 24 24 34 24 41 4 31Z" fill="#c3cad3"/><path d="M8 28 13 30.5 13 33 8 30.5Z M16 32 21 34.5 21 37 16 34.5Z" fill="#2a2e34"/><path d="M4 24 40 6 60 16" fill="none" stroke="#59616c" stroke-width=".8"/><ellipse cx="21.9" cy="25" rx="6.4" ry="3.5" fill="#15181c" stroke="#59616c" stroke-width=".8"/><path d="M17.9 23.8 25.9 26.2M17.9 26.2 25.9 23.8M21.9 22.4 21.9 27.6" stroke="#3a4049" stroke-width="1.1"/><ellipse cx="21.9" cy="25" rx="1.8" ry="1" fill="#6d7581"/><ellipse cx="32" cy="20" rx="6.4" ry="3.5" fill="#15181c" stroke="#59616c" stroke-width=".8"/><path d="M28 18.8 36 21.2M28 21.2 36 18.8M32 17.4 32 22.6" stroke="#3a4049" stroke-width="1.1"/><ellipse cx="32" cy="20" rx="1.8" ry="1" fill="#6d7581"/><ellipse cx="42.1" cy="15" rx="6.4" ry="3.5" fill="#15181c" stroke="#59616c" stroke-width=".8"/><path d="M38.1 13.8 46.1 16.2M38.1 16.2 46.1 13.8M42.1 12.4 42.1 17.6" stroke="#3a4049" stroke-width="1.1"/><ellipse cx="42.1" cy="15" rx="1.8" ry="1" fill="#6d7581"/>',
+  ssd:'<path d="M8 28 44 10 56 16 20 34Z" fill="#e8ebee"/><path d="M8 28 20 34 20 36 8 30Z" fill="#b9c0c8"/><path d="M20 34 56 16 56 18 20 36Z" fill="#a0a8b1"/><path d="M18 27 40 16 50 21 28 32Z" fill="#2f8a52"/><path d="M10 28.5 14 26.5 18 28.5 14 30.5Z" fill="#d4a94a"/>',
+  psu:'<path d="M14 16 32 7 50 16 50 34 32 43 14 34Z" fill="#1d2025"/><path d="M32 25 50 16 50 34 32 43Z" fill="#14161a"/><path d="M14 16 32 25 50 16 32 7Z" fill="#2c3038"/><ellipse cx="32" cy="16" rx="11" ry="5.6" fill="#0d0f12" stroke="#4a5059"/><path d="M35 34 46 28.5 46 33 35 38.5Z" fill="#e7b84a"/>'
+};
+function renderTabs(){
+  $('tabs').innerHTML=TABS.map(c=>{ const filled=build[c]||(c==='cooler'&&boxCool())||(c==='psu'&&builtPsu())||(c==='gpu'&&noGpuCase());
+    const sub=build[c]?esc(BY[build[c]].short||BY[build[c]].name)+(c==='ram'&&ramMods()>1?` ×${ramMods()}`:''):c==='cooler'&&boxCool()?'v balení':c==='psu'&&builtPsu()?'ve skříni':c==='gpu'&&noGpuCase()?'není potřeba':'vybrat';
+    return `<button class="tab${filled?' filled':''}${drawerOpen&&c===tab?' open':''}" role="tab" type="button" data-tab="${c}" aria-selected="${c===tab}"><svg class="ic" viewBox="0 0 64 46" aria-hidden="true">${ICONS[c]}</svg><span class="tl">${CAT[c].label}</span><span class="tv">${sub}</span></button>`; }).join('');
+}
+let drawerOpen=false;
+function openDrawer(c){ drawerOpen=true; $('drawer').classList.add('open'); renderTabs(); }
+const DESK=matchMedia('(min-width:861px)'); // on desktop the catalog column is always shown
+function closeDrawer(){ if(DESK.matches){ renderTabs(); return; } drawerOpen=false; $('drawer').classList.remove('open'); renderTabs(); }
+// filter groups per category; several groups combine (e.g. storage type + capacity)
+const capGB=p=>{const m=String(p.cap||'').match(/([\d,.]+)\s*(TB|GB)/); if(!m) return 0; const v=parseFloat(m[1].replace(',','.')); return m[2]==='TB'?v*1000:v;};
+const capBand=p=>{const g=capGB(p); return g<200?'128 GB':g<400?'256 GB':g<800?'512 GB':g<1500?'1 TB':g<3000?'2 TB':'4 TB+';};
+const FILTERS={
+  cpu:[{opts:['AMD','Intel'],of:p=>p.brand==='intel'?'Intel':'AMD'}],
+  mb:[{opts:['AMD','Intel'],of:p=>p.socket.startsWith('LGA')?'Intel':'AMD'},
+      {opts:['ATX','Micro ATX','Mini-ITX'],of:p=>p.form==='ITX'?'Mini-ITX':p.form==='mATX'?'Micro ATX':'ATX'}],
+  ram:[{opts:['DDR4','DDR5'],of:p=>p.type}],
+  gpu:[{opts:['GeForce','Radeon'],of:p=>/geforce/i.test(p.name)?'GeForce':'Radeon'}],
+  ssd:[{opts:['M.2','SATA SSD','HDD'],of:p=>p.form==='25'?'SATA SSD':p.form==='35'?'HDD':'M.2'},
+       {opts:['128 GB','256 GB','512 GB','1 TB','2 TB','4 TB+'],of:capBand}],
+  case:[{opts:['ATX','Micro ATX','Mini-ITX'],of:p=>p.forms.includes('ATX')?'ATX':p.forms.includes('mATX')?'Micro ATX':'Mini-ITX'}],
+  psu:[{opts:['ATX','SFX'],of:p=>p.pform==='SFX'?'SFX':'ATX'},
+       {opts:['do 550 W','650 W','750 W','850 W','1000 W+'],of:p=>p.watt<=550?'do 550 W':p.watt<=650?'650 W':p.watt<=750?'750 W':p.watt<=850?'850 W':'1000 W+'}],
+  monitor:[{opts:['24"','27"','32"','34"+'],of:p=>p.size<=25?'24"':p.size<=28.5?'27"':p.size<=33?'32"':'34"+'}]
+};
+const filt={};
+const curF=(c,g)=>(filt[c]&&filt[c][g])||'all';
+function renderSeg(){
+  const groups=FILTERS[tab], seg=$('seg');
+  if(!groups){seg.hidden=true;seg.innerHTML='';return;}
+  seg.hidden=false;
+  seg.innerHTML=groups.map((g,gi)=>`<div class="seg" role="group">${[['all','Vše'],...g.opts.map(o=>[o,o])]
+    .map(([v,l])=>`<button type="button" data-filter="${esc(v)}" data-group="${gi}" aria-pressed="${curF(tab,gi)===v}">${esc(l)}</button>`).join('')}</div>`).join('');
+}
+function renderList(){
+  const grp=p=>p.est?2:(p.sold>0?0:(p.alza?1:0));
+  // processors: newest generation first, then higher tier (Ryzen 9 > 7 > 5), then price
+  const cpuKey=p=>{const n=p.name; let m=n.match(/Ryzen (\d) (\d)\d{3}/); if(m) return [0,+m[2],+m[1]];
+    m=n.match(/Core Ultra (\d) (\d{3})/); if(m) return [1,20+(+m[2])/1000,+m[1]];
+    m=n.match(/Core i(\d)-(\d\d)/); if(m) return [1,+m[2],+m[1]]; return [2,0,0];};
+  const cpuSort=(a,b)=>{const x=cpuKey(a),y=cpuKey(b); return (x[0]-y[0])||(y[1]-x[1])||(y[2]-x[2])||(b.price-a.price);};
+  // every category: cheapest first
+  const all=PARTS.filter(p=>p.cat===tab).sort((a,b)=>(a.price-b.price)||a.name.localeCompare(b.name,'cs'));
+  renderSeg();
+  const groups=FILTERS[tab]||[];
+  const items=all.filter(p=>groups.every((g,gi)=>curF(tab,gi)==='all'||g.of(p)===curF(tab,gi)));
+  const cur=groups.map((g,gi)=>curF(tab,gi)).filter(v=>v!=='all').join(', ');
+  $('catTitle').textContent=CAT[tab].label;
+  $('catCount').textContent=`${items.length} ${items.length<5?'položky':'položek'}`;
+  if(!all.length){ $('list').innerHTML=`<div class="empty-list">${tab==='monitor'?'Monitory zatím v katalogu nejsou, brzy přibudou.':'Tahle kategorie je zatím prázdná.'}</div>`; return; }
+  if(!items.length){ $('list').innerHTML=`<div class="empty-list">V téhle kombinaci filtrů (${esc(cur)}) teď v katalogu nic není.</div>`; return; }
+  $('list').innerHTML=items.map((p,ix)=>{
+    const inB=build[p.cat]===p.id, iss=inB?null:issueFor(p), bl=inB?null:blocker(p);
+    const flag=inB?`<span class="flag in">${p.cat==='monitor'?'Vybráno':'Ve skříni'}${p.cat==='ram'?` ×${ramMods()}`:''}</span>`:iss?`<span class="flag ${iss.level}" title="${esc(iss.text)}">${esc(iss.short)}</span>`:'';
+    return `<article class="card${inB?' is-in':''}${bl?' is-blocked':''}" draggable="true" data-id="${p.id}">
+      <div class="thumb">${thumb(p)}</div>
+      <div class="info"><h3>${esc(p.name)}</h3><div class="code">${esc(p.code)}</div>
+        <ul class="chips">${p.spec.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+        <div class="row"><span class="price">${fmt(p.price)}</span>${flag}
+          ${bl?`<button class="btn" type="button" disabled title="${esc(bl.text)}">Nelze vložit</button>`:`${inB&&p.cat==='ram'&&ramMods()+p.sticks<=ramSlots()?`<button class="btn primary" type="button" data-act="add" data-id="${p.id}">+ ${p.sticks===1?'Modul':'Sada'}</button>`:''}<button class="btn ${inB?'danger':'primary'}" type="button" data-act="${inB?'remove':'add'}" data-id="${p.id}">${inB?'Vyjmout':'Vložit'}</button>`}</div>
+      </div></article>`;}).join('');
+}
+/* ---------- expected performance (rough guide, 100 % = top of today's consumer parts) ---------- */
+const GPU_SCORE=[[/RTX 5090/,100],[/RTX 5080/,80],[/RTX 5070 Ti/,70],[/RX 9070 XT/,68],[/RX 7900 XT/,64],[/RX 9070 GRE/,48],[/RX 9070/,58],[/RTX 5070/,56],
+  [/RTX 5060 Ti.*16/,43],[/RTX 5060 Ti/,40],[/RX 9060 XT/,40],[/RTX 5060/,34],[/RTX 5050/,26],[/RX 7600/,28],[/RTX 3050/,15]];
+function gpuScore(b){
+  if(b.gpu){const n=b.gpu.name; for(const [re,v] of GPU_SCORE) if(re.test(n)) return v; return 30;}
+  if(!b.cpu||!b.cpu.igpu) return 0;
+  const n=b.cpu.name;                       // integrated graphics
+  if(/8600G|8700G/.test(n)) return 9; if(/5700G|5600G/.test(n)) return 6; if(/3200G|3400G/.test(n)) return 4;
+  return 3;
+}
+function cpuScores(c){
+  if(!c) return {game:0,multi:0};
+  const n=c.name, cores=+((c.spec.join(' ').match(/(\d+) j[aá]d/)||[])[1]||6);
+  let gen=.7, m;
+  if((m=n.match(/Ryzen \d (\d)\d{3}/))) gen={9:1,8:.86,7:.9,5:.72,3:.5}[m[1]]||.7;
+  else if(/Core Ultra/.test(n)) gen=.95;
+  else if((m=n.match(/Core i\d-(\d\d)/))) gen=+m[1]>=14?.9:.8;
+  const x3d=/X3D/.test(n)?1.15:1;
+  return {game:Math.min(100,Math.round(gen*x3d*Math.min(1,.72+cores/40)*100/1.15)), multi:Math.min(100,Math.round(Math.sqrt(gen*Math.min(cores,24)/16)*100))};
+}
+function renderPerf(b){
+  const el=$('perf'), note=$('perfNote');
+  if(!b.cpu){ el.innerHTML='<li class="empty">Vlož procesor (a grafiku) a uvidíš, na co sestava stačí.</li>'; note.textContent=''; return; }
+  const c=cpuScores(b.cpu), g=gpuScore(b), gb=b.ram?(+((b.ram.name.match(/(\d+)\s?GB/)||[])[1]||16))/b.ram.sticks*ramMods():0;
+  const ramS=gb>=64?100:gb>=32?85:gb>=16?55:gb?30:0, cf=Math.min(1,.55+c.game/220), cl=v=>Math.max(0,Math.min(100,Math.round(v)));
+  const rows=[
+    ['Kancelář a internet', g?cl(72+c.game*.32)*(gb?1:.5):0],
+    ['Hry ve Full HD',      cl(g/38*100*cf)],
+    ['Hry ve 1440p a 4K',   cl(g/72*100*cf)],
+    ['Střih videa',         cl(c.multi*.6+Math.min(g,60)/60*25+ramS*.15)],
+    ['Streamování',         cl(c.multi*.5+Math.min(g,56)/56*35+ramS*.15)]
+  ];
+  const col=v=>v>=70?'var(--ok)':v>=40?'var(--warn)':'var(--err)';
+  el.innerHTML=rows.map(([l,v])=>`<li><span class="pl">${l}</span><span class="pv">${v} %</span><span class="pb"><i style="width:${v}%;background:${col(v)}"></i></span></li>`).join('');
+  note.textContent=!g?'bez grafiky':!b.ram?'chybí paměť':'orientačně';
+}
+function renderSummary(){
+  const b=parts(build), list=checks(b);
+  const order=['case','mb','cpu','cooler','ram','gpu','ssd','psu','monitor'];
+  const total=Object.values(b).reduce((a,p)=>a+(p.cat==='ram'?ramPrice(p):p.price),0), n=Object.keys(b).filter(c=>!OPTIONAL.includes(c)).length+(boxCool()?1:0)+(!b.gpu&&b.cpu&&b.cpu.igpu&&!noGpuCase()?1:0)+(builtPsu()?1:0)+(noGpuCase()?1:0);
+  const bx=boxCool();
+  $('parts').innerHTML=order.map(c=>{const p=b[c];
+    if(c==='gpu'&&!p&&noGpuCase()) return `<li><span class="lbl done">${CAT[c].label}</span><span class="nm">bez grafické karty <b>· skříň ji nepojme</b></span><span class="pr">—</span><span></span></li>`;
+    if(c==='psu'&&!p&&builtPsu()) return `<li><span class="lbl done">${CAT[c].label}</span><span class="nm">${esc(builtPsu().name)} <b>· součást skříně</b></span><span class="pr">v ceně</span><span></span></li>`;
+    if(c==='cooler'&&!p&&bx) return `<li><span class="lbl done">${CAT[c].label}</span><span class="nm">${esc(bx)} <b>· v balení s procesorem</b></span><span class="pr">v ceně</span><button class="link" type="button" data-tab="cooler">Jiný</button></li>`;
+    return `<li><span class="lbl${p?' done':''}">${CAT[c].label}</span>${p?`<span class="nm">${esc(p.name)}${c==='ram'?` <b>· ${ramMods()} ${ramMods()===1?'modul':ramMods()<5?'moduly':'modulů'}</b>`:''}</span><span class="pr">${fmt(c==='ram'?ramPrice(p):p.price)}</span><button class="x" type="button" data-act="remove" data-id="${p.id}" aria-label="Vyjmout ${esc(p.name)}">×</button>`
+      :`<span class="empty">nevybráno</span><span></span><button class="link" type="button" data-tab="${c}">Vybrat</button>`}</li>`;}).join('');
+  $('sCount').textContent=`${n} z 8 dílů`;
+  $('sPrice').textContent=$('tPrice').textContent=fmt(total);
+  $('mPrice').textContent=fmt(total); $('mCount').textContent=`${n} z 8 dílů`;
+  const e=estimate(b), r=recPSU(e); $('tWatt').textContent=e?`≈ ${e} W`:'0 W';
+  const bar=$('mBar');
+  const ep=effPsu(b);
+  if(ep){const pct=Math.min(100,e/ep.watt*100), col=ep.watt<e?'var(--err)':ep.watt<r?'var(--warn)':'var(--ok)';
+    bar.style.width=pct+'%'; bar.style.background=col;
+    $('mNote').textContent=`Odběr ≈ ${e} W z ${ep.watt} W (${Math.round(pct)} %). Doporučený zdroj: ${r} W.`;}
+  else {bar.style.width='0';$('mNote').textContent=e?`Odběr ≈ ${e} W. Doporučený zdroj: aspoň ${r} W.`:'Odběr se spočítá podle vložených komponent.';}
+  const missing=order.filter(c=>!OPTIONAL.includes(c)&&!b[c]&&!(c==='cooler'&&boxCool())&&!(c==='psu'&&builtPsu())&&!(c==='gpu'&&(noGpuCase()||(b.cpu&&b.cpu.igpu))));
+  const icon={ok:'✓',warn:'!',err:'×',todo:'·'};
+  const notes=list.filter(c=>c.level!=='ok').map(c=>({level:'warn',text:c.text}));
+  if(!notes.length) notes.push(missing.length?{level:'todo',text:'Zatím bez upozornění. Nekompatibilní díly do skříně nepůjdou vložit.'}:{level:'ok',text:'Sestava je kompletní a díly k sobě pasují.'});
+  $('checks').innerHTML=notes.map(c=>`<li class="${c.level}"><span class="ic">${icon[c.level]}</span><span>${esc(c.text)}</span></li>`).join('');
+  const errs=list.filter(c=>c.level==='err').length, warns=list.filter(c=>c.level==='warn').length, st=$('tStatus');
+  if(errs){st.className='pill err';st.textContent=errs===1?'1 problém':`${errs} ${errs<5?'problémy':'problémů'}`;}
+  else if(warns){st.className='pill warn';st.textContent=warns===1?'1 varování':`${warns} varování`;}
+  else if(missing.length){st.className='pill warn';st.textContent=`Chybí ${missing.length} ${missing.length===1?'díl':missing.length<5?'díly':'dílů'}`;}
+  else {st.className='pill ok';st.textContent='Sestava je kompletní';}
+  const ms=$('mStatus'); ms.className=st.className; ms.textContent=st.textContent.replace('Sestava je kompletní','Kompletní');
+}
+function renderMonitor(){ // the chosen monitor as a small picture in the 3D window, same size as its catalog thumbnail
+  const m=build.monitor&&BY[build.monitor], el=$('monChip'); el.hidden=!m; if(!m) return;
+  el.innerHTML=thumb(m)+`<span class="mname">${esc(m.name)}</span>`; el.title=m.name;
+}
+// a working build: nothing required is missing and no compatibility error
+function functional(ids=build){ const keep=build; build=ids;
+  try{ const miss=TABS.filter(c=>!OPTIONAL.includes(c)&&!build[c]&&!(c==='cooler'&&boxCool())&&!(c==='psu'&&builtPsu())&&!(c==='gpu'&&(noGpuCase()||(build.cpu&&BY[build.cpu].igpu))));  // integrated graphics count as graphics
+    return !miss.length&&!checks(parts(build)).some(c=>c.level==='err'); }
+  finally{ build=keep; } }
+let powerOn=false; // fans spin and RGB lights up only after the user switches the power on
+function renderButtons(){ const ok=functional(), hasPsu=!!(build.psu||builtPsu()); if(!hasPsu) powerOn=false; // power can go on as soon as there is a PSU
+  $('b3Pwr').hidden=!hasPsu; $('b3Pwr').textContent=powerOn?'⏻ Vypnout':'⏻ Zapnout'; $('b3Pwr').classList.toggle('on',powerOn);
+  $('bSaveDemo').hidden=!ok; const d=savedDemo(); $('bDemo').hidden=!(d&&functional(d.b)); }
+function render(){renderTabs();renderList();renderStage();renderSummary();renderPerf(parts(build));renderMonitor();renderButtons();popCat=null;}
+$('b3Pwr').addEventListener('click',()=>{ powerOn=!powerOn; renderButtons(); });
+// monitor picture: click opens the monitors; drag it more than 50 px away and let go to take the monitor out
+(function(){
+  const chip=$('monChip'); let d=null;
+  chip.addEventListener('pointerdown',e=>{ if(e.button>0||!build.monitor) return; e.stopPropagation(); chip.setPointerCapture(e.pointerId);
+    d={x:e.clientX,y:e.clientY,ghost:null,far:false}; });
+  chip.addEventListener('pointermove',e=>{ if(!d) return; const dist=Math.hypot(e.clientX-d.x,e.clientY-d.y);
+    if(!d.ghost&&dist>6){ const g=document.createElement('div'); g.className='drag-ghost'; g.style.width='150px'; g.style.height='100px';
+      g.innerHTML=thumb(BY[build.monitor])+'<span class="tag">Pustit = vyjmout</span>'; document.body.appendChild(g); d.ghost=g; chip.style.opacity='.35'; document.body.classList.add('dragging-part'); }
+    if(d.ghost){ d.ghost.style.transform=`translate(${e.clientX-75}px,${e.clientY-50}px)`; d.far=dist>50; d.ghost.classList.toggle('out',d.far); } });
+  const end=e=>{ if(!d) return; const dd=d; d=null; chip.style.opacity=''; document.body.classList.remove('dragging-part');
+    if(dd.ghost){ dd.ghost.remove(); if(dd.far) remove(build.monitor); }
+    else setTab('monitor',true); };
+  chip.addEventListener('pointerup',end); chip.addEventListener('pointercancel',()=>{ if(d&&d.ghost) d.ghost.remove(); d=null; chip.style.opacity=''; document.body.classList.remove('dragging-part'); });
+})();
+
+/* ---------- actions ---------- */
+function blocker(p){const b=parts(build); b[p.cat]=p; return checks(b).find(c=>c.block&&c.cats.includes(p.cat))||null;}
+let toastT;
+function toast(msg){const t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{t.hidden=true;},3200);}
+function install(id){const p=BY[id]; if(!p) return;
+  if(p.cat==='ram'&&build.ram===id){ const n=ramMods()+p.sticks, max=ramSlots(); if(n>max){ toast(`Všechny ${max} sloty pro RAM jsou obsazené.`); return; } ramN=n; popCat='ram'; save(); render(); return; }
+  const bl=blocker(p); if(bl){ toast(`Nejde vložit: ${bl.text}.`); return; } if(p.cat==='ram') ramN=p.sticks; build[p.cat]=id; popCat=p.cat; tab=p.cat; save(); render();}
+function remove(id){const p=BY[id]; if(p&&build[p.cat]===id){delete build[p.cat]; if(p.cat==='ram') ramN=0; save(); render();}}
+function setTab(c,scroll){tab=c; renderList(); if(scroll) openDrawer(c); else renderTabs();}
+
+document.addEventListener('click',e=>{
+  const f=e.target.closest('[data-filter]'); if(f){ (filt[tab]=filt[tab]||{})[f.dataset.group]=f.dataset.filter; renderList(); return; }
+  const t=e.target.closest('[data-act],[data-tab]'); if(!t) return;
+  if(t.dataset.act==='add') install(t.dataset.id);
+  else if(t.dataset.act==='remove') remove(t.dataset.id);
+  else if(t.dataset.tab) setTab(t.dataset.tab, t.classList.contains('link'));
+});
+let suppressClick=false;
+$('bSheet').onclick=()=>{ document.querySelector('.sheet').scrollIntoView({behavior:'smooth',block:'start'}); };
+// the sample build: the user's own saved one (this browser) or the built-in one
+const DEMO_KEY='pcux-demo-v1'; // fresh key: no saved sample yet
+function savedDemo(){ try{ const d=JSON.parse(localStorage.getItem(DEMO_KEY)||'null'); if(!d||typeof d!=='object') return null;
+  const b={}; for(const k in d) if(BY[d[k]]&&BY[d[k]].cat===k) b[k]=d[k]; return Object.keys(b).length?{b,ramN:+d._ramN||0}:null; }catch(e){ return null; } }
+// the sample button shows up only once a sample has been saved in this browser
+$('bDemo').onclick=()=>{ const d=savedDemo(); if(!d) return; build={...d.b}; ramN=d.ramN; powerOn=false; save(); render(); };
+function demoBtn(){ renderButtons(); }
+$('bSaveDemo').onclick=()=>{ if(!functional()){ toast('Uložit jde jen funkční sestava.'); return; }
+  try{ localStorage.setItem(DEMO_KEY,JSON.stringify({...build,_ramN:ramN})); demoBtn(); toast('Uloženo. Tlačítko „Ukázková sestava“ ji teď kdykoli načte.'); }
+  catch(e){ toast('Tenhle prohlížeč nedovolí ukládat.'); } };
+$('bClear').onclick=()=>{build={}; ramN=0; tab='mb'; save(); render();};
+
+const stage=$('stage');
+document.addEventListener('dragstart',e=>{
+  const c=e.target.closest&&e.target.closest('.card'); if(!c) return;
+  dragId=c.dataset.id; try{e.dataTransfer.setData('text/plain',dragId);e.dataTransfer.effectAllowed='copy';}catch(_){}
+  const denied=!!blocker(BY[dragId]);
+  stage.classList.add(denied?'deny':'drag');
+  setTimeout(()=>$('drawer').classList.add('peek'),0); // after the drag image is taken
+});
+document.addEventListener('dragend',()=>{dragId=null; stage.classList.remove('drag','deny'); $('drawer').classList.remove('peek');});
+stage.addEventListener('dragover',e=>{if(dragId){e.preventDefault(); e.dataTransfer.dropEffect='copy';}});
+stage.addEventListener('drop',e=>{e.preventDefault(); const id=dragId||e.dataTransfer.getData('text/plain'); stage.classList.remove('drag','deny'); $('drawer').classList.remove('peek'); dragId=null;
+  install(id); if(BY[id]&&build[BY[id].cat]===id&&drawerOpen) closeDrawer();});
+
+/* ================= 3D bench: the board lies on the mat, the case lies beside it ================= */
+/* units are centimetres; world y is up. Board-mounted parts are modelled in board space
+   (x right, y up the board, z out of the board) inside boardFrame, which is laid flat. */
+const B3=(function(){
+  if(!window.THREE) return {sync(){},ok:false};
+  const canvas=$('c3d'), host=$('stage');
+  const R=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+  R.shadowMap.enabled=true; R.shadowMap.type=THREE.PCFSoftShadowMap;
+  const S=new THREE.Scene();
+  const cam=new THREE.OrthographicCamera(-1,1,1,-1,-800,800);
+  const ISO_T=THREE.MathUtils.degToRad(45), ISO_P=Math.atan(1/Math.SQRT2); // fixed true isometric view (no orbiting)
+  const ZOOM0=.81; // starting zoom (also what double-click returns to)
+  let theta=ISO_T, phi=ISO_P, zoom=ZOOM0;
+  // zoom readout relative to the starting view: 0 % = default, with a reset button
+  const zbox=document.createElement('div'); zbox.className='zbox';
+  zbox.innerHTML='<button type="button" class="zstep" data-z="-1" aria-label="Oddálit">−</button><span class="zval">Přiblížení 0 %</span><button type="button" class="zstep" data-z="1" aria-label="Přiblížit">+</button><button type="button" class="zreset" disabled>Výchozí pohled</button>'; host.appendChild(zbox);
+  zbox.querySelectorAll('.zstep').forEach(b=>b.addEventListener('click',()=>{ zoomSet(zoom*Math.pow(1.15,+b.dataset.z)); }));
+  const zval=zbox.querySelector('.zval'), zreset=zbox.querySelector('.zreset');
+  function zoomSet(z){ zoom=THREE.MathUtils.clamp(z,.6,3); let p=Math.round((zoom/ZOOM0-1)*100); if(Math.abs(zoom-ZOOM0)<1e-6) p=0;
+    zval.textContent='Přiblížení '+(p>0?'+':p<0?'−':'')+Math.abs(p)+' %'; zreset.disabled=p===0&&!orbit; }
+  zreset.addEventListener('click',()=>resetView());
+  zbox.addEventListener('pointerdown',e=>e.stopPropagation());
+  const view={t:new THREE.Vector3(10,4,0),h:60}, want={t:new THREE.Vector3(10,4,0),h:60};
+
+  S.add(new THREE.HemisphereLight(0xdfe9ff,0x1a2440,.78));
+  const sun=new THREE.DirectionalLight(0xffffff,.82); sun.position.set(40,110,70); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
+  Object.assign(sun.shadow.camera,{left:-80,right:80,top:80,bottom:-80,near:1,far:320}); sun.shadow.bias=-.0006; S.add(sun); S.add(sun.target);
+  const fill=new THREE.DirectionalLight(0x9db4ff,.25); fill.position.set(-60,30,40); S.add(fill);
+
+  /* ---- helpers ---- */
+  const col=c=>new THREE.Color(c||'#333');
+  const M=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:col(c),roughness:.62,metalness:.15,flatShading:true},o));
+  function bx(w,h,d,m,x,y,z,par){const g=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);g.position.set(x,y,z);g.castShadow=g.receiveShadow=true;par.add(g);return g;}
+  function cy(r,h,m,x,y,z,axis,par,seg=24){const g=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg),m);g.position.set(x,y,z);
+    if(axis==='x')g.rotation.z=Math.PI/2; if(axis==='z')g.rotation.x=Math.PI/2; g.castShadow=g.receiveShadow=true;par.add(g);return g;}
+  function tex(text,{w=512,h=96,bg='#1b1d22',fg='#fff',font='700 52px "Chakra Petch", sans-serif'}={}){
+    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+    if(bg){x.fillStyle=bg;x.fillRect(0,0,w,h);} x.fillStyle=fg;x.font=font;x.textAlign='center';x.textBaseline='middle';x.fillText(text,w/2,h/2+2);
+    const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;}
+  function decal(w,h,t,x,y,z,rot,par,transparent){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:t,roughness:.7,transparent:!!transparent}));
+    m.position.set(x,y,z); if(rot)m.rotation.set(...rot); par.add(m); return m;}
+  const spinners=[], glows=[];
+  function fan3(size,par,x,y,z,facing,blade='#3c4350',frame='#16181c'){
+    const g=new THREE.Group(); g.position.set(x,y,z); par.add(g);
+    bx(size,size,size*.22,M(frame),0,0,0,g); cy(size*.46,size*.24,M('#0d0f12'),0,0,0,'z',g,28);
+    const r=new THREE.Group(); g.add(r); cy(size*.14,size*.26,M('#23272e'),0,0,0,'z',r,18);
+    for(let i=0;i<7;i++){const b=bx(size*.36,size*.11,size*.03,M(blade),0,0,0,r);const a=i/7*Math.PI*2;b.position.set(Math.cos(a)*size*.25,Math.sin(a)*size*.25,0);b.rotation.set(.35,0,a);}
+    if(facing==='x')g.rotation.y=Math.PI/2; if(facing==='y')g.rotation.x=Math.PI/2;
+    spinners.push(r); return g;}
+  function tag(g,cat){ g.traverse(o=>{if(o.isMesh){o.userData.cat=cat;o.castShadow=true;o.receiveShadow=true;}}); return g; }
+  function dispose(g){ if(!g) return; g.parent&&g.parent.remove(g); g.traverse(o=>{ if(o.isMesh){ o.geometry.dispose(); const m=o.material; if(m.map) m.map.dispose(); m.dispose(); } });
+    for(let i=spinners.length-1;i>=0;i--){ let p=spinners[i]; while(p&&p!==g) p=p.parent; if(p===g) spinners.splice(i,1); }
+    for(let i=glows.length-1;i>=0;i--){ let p=glows[i]; while(p&&p!==g) p=p.parent; if(p===g) glows.splice(i,1); } }
+
+  /* ---- mat ---- */
+  // the mat is resized to hug whatever lies on it, so the camera can frame it closely
+  const matBody=bx(1,1.2,1,M('#4f6a8c',{roughness:.92}),0,-.6,0,S);
+  const gc=document.createElement('canvas'); gc.width=gc.height=64; { const x=gc.getContext('2d'); x.fillStyle='#5a7697'; x.fillRect(0,0,64,64); x.strokeStyle='rgba(205,222,245,.55)'; x.lineWidth=2; x.strokeRect(0,0,64,64); }
+  const gtex=new THREE.CanvasTexture(gc); gtex.wrapS=gtex.wrapT=THREE.RepeatWrapping; gtex.anisotropy=16;
+  const matTop=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshStandardMaterial({map:gtex,roughness:.92})); matTop.rotation.x=-Math.PI/2; matTop.position.y=.01; matTop.receiveShadow=true; S.add(matTop);
+  const matRect={x0:-30,x1:30,z0:-20,z1:20};
+  function setMat(x0,x1,z0,z1){ const w=x1-x0, d=z1-z0, cx=(x0+x1)/2, cz=(z0+z1)/2; Object.assign(matRect,{x0,x1,z0,z1});
+    matBody.scale.set(w,1,d); matBody.position.set(cx,-.6,cz); matTop.scale.set(w,d,1); matTop.position.set(cx,.01,cz); gtex.repeat.set(w/2,d/2); }
+
+  /* ---- layout of each board size (board space) ---- */
+  const LAYS={
+    ATX: {W:24.4,H:30.5,sock:[8.5,22.5],dimm:[15.3,16.2,17.1,18.0],dimmY:22.3,dimmL:13.3,pcieY:13.2,m2:[8.5,16.9],a24:[23.5,21],eps:[3.2,29.4]},
+    mATX:{W:24.4,H:24.4,sock:[8.5,16.6],dimm:[15.3,16.2,17.1,18.0],dimmY:16.4,dimmL:13.3,pcieY:7.6,m2:[8.5,11.1],a24:[23.5,15.2],eps:[3.2,23.3]},
+    ITX: {W:17,  H:17,  sock:[6.4,10.6],dimm:[13.4,14.3],dimmY:10.2,dimmL:12.4,pcieY:2.3,m2:[6.4,5.4],a24:[16.2,6.2],eps:[3,16]}
+  };
+  const lay=()=>LAYS[(build.mb&&BY[build.mb].form)||(build.case&&!BY[build.case].forms.includes('ATX')?(BY[build.case].forms.includes('mATX')?'mATX':'ITX'):'ATX')];
+  const SO=1.1; // standoff height under the board
+
+  /* ---- builders ---- */
+  /* PCB copper traces + vias, drawn once per board size on a transparent canvas */
+  const traceCache={};
+  function traceTex(W,H){
+    const k=W+'x'+H; if(traceCache[k]) return traceCache[k];
+    const S=40, c=document.createElement('canvas'); c.width=Math.round(W*S); c.height=Math.round(H*S); const x=c.getContext('2d');
+    let seed=7; const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+    x.lineCap='round'; x.lineJoin='round';
+    const bus=(x0,y0,dir,len,n,gap,bend)=>{ // n parallel traces that run straight, bend 45° and run on
+      for(let i=0;i<n;i++){ const o=i*gap; x.beginPath();
+        let px=x0+(dir?o:0), py=y0+(dir?0:o); x.moveTo(px,py);
+        const a=len*.45, b=len*.25;
+        if(dir){ py+=a; x.lineTo(px,py); px+=b*bend; py+=b; x.lineTo(px,py); py+=len-a-b; x.lineTo(px,py); }
+        else   { px+=a; x.lineTo(px,py); px+=b; py+=b*bend; x.lineTo(px,py); px+=len-a-b; x.lineTo(px,py); }
+        x.stroke(); x.beginPath(); x.arc(px,py,2.6,0,7); x.fill(); } };
+    x.strokeStyle='rgba(140,232,240,.62)'; x.fillStyle='rgba(205,245,250,.8)'; x.lineWidth=2.6;
+    for(let i=0;i<46;i++){ const dir=rnd()<.5; bus(rnd()*c.width*.9,rnd()*c.height*.9,dir,(3+rnd()*7)*S,2+Math.floor(rnd()*5),6+rnd()*3,rnd()<.5?1:-1); }
+    x.strokeStyle='rgba(130,220,232,.38)'; x.lineWidth=1.6;
+    for(let i=0;i<90;i++){ const px=rnd()*c.width, py=rnd()*c.height, l=(1+rnd()*4)*S; x.beginPath(); x.moveTo(px,py); rnd()<.5?x.lineTo(px+l,py):x.lineTo(px,py+l); x.stroke(); }
+    x.fillStyle='rgba(215,245,248,.6)'; for(let i=0;i<320;i++){ x.beginPath(); x.arc(rnd()*c.width,rnd()*c.height,2.4,0,7); x.fill(); } // vias
+    x.strokeStyle='rgba(200,240,245,.45)'; x.lineWidth=3; x.strokeRect(8,8,c.width-16,c.height-16);
+    const t=new THREE.CanvasTexture(c); t.anisotropy=8; return traceCache[k]=t; }
+  function silk(text,w,h,x,y,z,par,rotZ){ const t=tex(text,{w:Math.round(512*w/h/4),h:128,bg:'#00000000',fg:'#f2f7f8',font:'700 96px "IBM Plex Sans", sans-serif'});
+    const d=decal(w,h,t,x,y,z,rotZ?[0,0,rotZ]:null,par,true); d.material.depthWrite=false; return d; }
+  function pinTex(cols,rows,bg='#e8ebee'){ const c=document.createElement('canvas'),u=32; c.width=cols*u; c.height=rows*u; const x=c.getContext('2d');
+    x.fillStyle=bg; x.fillRect(0,0,c.width,c.height); x.fillStyle='#3b4048';
+    for(let i=0;i<cols;i++) for(let j=0;j<rows;j++) x.fillRect(i*u+7,j*u+7,u-14,u-14);
+    const t=new THREE.CanvasTexture(c); t.anisotropy=4; return t; }
+  function pcieSlot(x0,y,len,par,armor){ // black slot with key notch, contact groove and retention latch
+    const blk=M('#0d1014'), key=1.15;
+    bx(key,.7,.7,blk,x0+key/2,y,SO+.38,par); bx(len-key-.2,.7,.7,blk,x0+key+.2+(len-key-.2)/2,y,SO+.38,par);
+    bx(len-.3,.16,.02,M('#3a3f47'),x0+len/2,y,SO+.74,par);                       // contact groove
+    bx(.55,.8,.85,M('#c9ced5'),x0+len+.3,y,SO+.45,par);                            // latch
+    if(armor){ const st=M('#b8c0ca',{metalness:.8,roughness:.3}); bx(len+.2,.1,.75,st,x0+len/2,y+.4,SO+.4,par); bx(len+.2,.1,.75,st,x0+len/2,y-.4,SO+.4,par); } }
+  function buildMB(p,L){
+    const g=new THREE.Group(), pcb=new THREE.MeshStandardMaterial({color:col(lift(p.pcb||'#1a1d22')).lerp(col('#1d5566'),.55),roughness:.78,flatShading:true}), hs=M(p.tone||'#5a606a',{metalness:.45,roughness:.4});
+    bx(L.W,L.H,.2,pcb,L.W/2,L.H/2,SO,g);
+    for(const [x,y] of [[.6,.6],[L.W-.6,.6],[.6,L.H-.6],[L.W-.6,L.H-.6]]) cy(.32,.25,M('#b9963f',{metalness:.6}),x,y,SO+.12,'z',g,10);
+    const [sx,sy]=L.sock;
+    bx(L.W*.4,1.6,1.3,hs,sx+.6,L.H-1.6,SO+.75,g);           // VRM heatsink, top
+    bx(1.8,L.H*.33,1.3,hs,2.4,sy+1,SO+.75,g);                // VRM heatsink, left
+    bx(2.6,L.H*.36,2.5,M('#2a2f37'),1.3,L.H-L.H*.18-.4,SO+1.3,g); // rear I/O cover
+    bx(4.6,4.6,.35,M('#8d96a1',{metalness:.5}),sx,sy,SO+.25,g); bx(3.6,3.6,.36,M('#262b32'),sx,sy,SO+.27,g);
+    const n=L.dimm.length, latch=M('#c9ced5'); for(let i=0;i<n;i++){ bx(.55,L.dimmL,.6,M('#0d1014'),L.dimm[i],L.dimmY,SO+.35,g); bx(.12,L.dimmL-.6,.02,M('#3a3f47'),L.dimm[i],L.dimmY,SO+.66,g);
+      for(const e of [-1,1]) bx(.6,.45,.85,latch,L.dimm[i],L.dimmY+e*(L.dimmL/2+.2),SO+.45,g); }
+    pcieSlot(1.5,L.pcieY,8.9,g,true);
+    if(L.H>20) bx(4.2,4.2,.9,hs,L.W*.78,L.pcieY-1.5,SO+.5,g);    // chipset
+    bx(1.1,5.2,1,M('#e8ebee'),L.a24[0],L.a24[1],SO+.55,g); decal(1.1,5.2,pinTex(2,12),L.a24[0],L.a24[1],SO+1.06,null,g);
+    bx(1.4,1.1,.8,M('#e8ebee'),L.eps[0],L.eps[1],SO+.45,g); decal(1.4,1.1,pinTex(4,2),L.eps[0],L.eps[1],SO+.86,null,g);
+    bx(8.2,2.3,.12,M('#2a6070',{metalness:.5,roughness:.35}),L.m2[0],L.m2[1],SO+.15,g);
+    silk('M.2',1.8,.85,L.m2[0]-2.4,L.m2[1],SO+.22,g); cy(.22,.12,M('#c9ced5',{metalness:.8}),L.m2[0]+3.7,L.m2[1],SO+.26,'z',g,12);
+    // board details: traces, VRM chokes and caps, chips, extra slots, SATA, headers, CMOS battery
+    decal(L.W-.3,L.H-.3,traceTex(L.W,L.H),L.W/2,L.H/2,SO+.104,null,g,true);
+    const choke=M('#5d636c',{metalness:.5,roughness:.45}), cap=M('#2b2f36',{metalness:.6,roughness:.35}), chip=M('#15171b',{roughness:.5}), slot=M('#0d1014'), hdr=M('#1a1c20');
+    for(let x=sx-2.6;x<=sx+3.6;x+=1.05){ bx(.85,.85,.6,choke,x,L.H-3.25,SO+.4,g); cy(.2,.5,cap,x,L.H-4.1,SO+.35,'z',g,10); }
+    if(sx-2.3-3.3>1.6) for(let y=sy-2.6;y<=sy+2.6;y+=1.05){ bx(.85,.85,.6,choke,4.4,y,SO+.4,g); cy(.2,.5,cap,5.4,y,SO+.35,'z',g,10); }
+    const gap0=L.pcieY+.4, gap1=L.m2[1]-1.2, th=Math.min(1.2,(gap1-gap0)-.3), tw=th*8.5, ty=(gap0+gap1)/2;
+    decal(tw,th,tex(`${p.short||''} · ${p.form==='ITX'?'Mini-ITX':p.form==='mATX'?'Micro ATX':'ATX'}`,{w:1024,h:120,bg:'#00000000',fg:'#b8e2ee',font:'600 78px "IBM Plex Sans", sans-serif'}),1.5+tw/2,ty,SO+.112,null,g,true);
+    if(L.H>20){
+      bx(2.6,.6,.6,slot,1.5+1.3,L.pcieY-4.4,SO+.35,g);                         // PCIe x1
+      if(L.H>28) bx(8.9,.7,.7,slot,1.5+4.45,L.pcieY-8.4,SO+.38,g);            // second x16 (ATX)
+      bx(1.4,1.4,.25,chip,L.W*.6,L.pcieY-5.6,SO+.22,g); bx(1.75,1.75,.04,M('#9aa3ad',{metalness:.7}),L.W*.6,L.pcieY-5.6,SO+.12,g); // super I/O + legs
+      bx(.9,.9,.2,chip,3.2,L.pcieY-2.4,SO+.2,g);                               // audio codec
+      cy(1,.3,M('#c9ced5',{metalness:.8,roughness:.25}),L.W*.6,L.pcieY-2.6,SO+.25,'z',g,28); // CMOS battery
+      for(let i=0;i<2;i++) bx(.9,1.3,.8,M('#20242a'),L.W-.6,L.pcieY-1-i*1.6,SO+.5,g);        // SATA ports
+      for(let i=0;i<3;i++) bx(1.6,.5,.45,hdr,L.W*.45+i*2.2,.8,SO+.32,g);                    // front-panel / USB headers
+    } else {
+      bx(1,1,.2,chip,L.W-3.2,1.6,SO+.2,g);
+      for(let i=0;i<2;i++) bx(1.4,.5,.45,hdr,11.5+i*1.9,.7,SO+.32,g);
+    }
+    bx(.9,.9,.2,chip,L.W*.55,L.H-1.4,SO+.2,g);                                 // BIOS chip
+    // silkscreen labels so each part reads at a glance
+    silk('PCIe x16',4.6,1,1.5+2.5,L.pcieY-1.1,SO+.11,g);
+    silk(p.ram||'DDR',3.2,1,(L.dimm[0]+L.dimm[n-1])/2,L.dimmY-L.dimmL/2-1.2,SO+.11,g);
+    if(L.H>20) silk('ATX 24pin',4,.85,Math.min(L.a24[0]-1.2,L.W-2.2),L.a24[1]-3.3,SO+.11,g);
+    silk('CPU',2.2,.95,sx,sy-3.1,SO+.11,g);
+    return g;
+  }
+  function buildCPU(p,L){
+    const g=new THREE.Group(), [sx,sy]=L.sock;
+    bx(4,4,.3,M('#1f5c3f'),sx,sy,SO+.6,g);
+    bx(3.3,3.3,.35,M('#c9ced5',{metalness:.7,roughness:.35}),sx,sy,SO+.9,g);
+    decal(3,1.3,tex(p.brand==='intel'?'intel':'AMD',{w:256,h:110,bg:'#c9ced5',fg:p.tone||'#c8102e',font:'700 70px "Chakra Petch", sans-serif'}),sx,sy+.3,SO+1.08,null,g);
+    decal(3,.7,tex(p.model||'',{w:512,h:110,bg:'#c9ced5',fg:'#343a43',font:'600 52px "Chakra Petch", sans-serif'}),sx,sy-.8,SO+1.08,null,g);
+    return g;
+  }
+  function stockCooler(cpu,L){
+    const g=new THREE.Group(), [sx,sy]=L.sock, intel=cpu.brand==='intel';
+    bx(8,8,3,M(intel?'#b9c0c8':'#1c1e22',{metalness:.5}),sx,sy,SO+2.6,g);
+    fan3(7.4,g,sx,sy,SO+4.3,'z','#3a3f46','#111316');
+    return g;
+  }
+  function buildCooler(p,L){
+    const g=new THREE.Group(), [sx,sy]=L.sock, base=SO+1.6;
+    if(p.aio){ // pump block on the CPU, radiator is a separate world object
+      bx(5.2,5.2,2.6,M(p.frame||'#16181b',{metalness:.3}),sx,sy,base+1.3,g);
+      cy(1.9,.2,M(p.blade||'#3e444c',{emissive:col(p.blade||'#3e444c'),emissiveIntensity:.25}),sx,sy,base+2.65,'z',g,28);
+      return g; }
+    const h=(p.height||150)/10;
+    bx(4.4,4.4,1,M('#a9b0b8',{metalness:.7,roughness:.3}),sx,sy,base+.5,g);
+    if(h<6){ // low profile: flat heatsink with a fan on top
+      bx(8.5,8.5,h-2,M('#b4bcc5',{metalness:.6}),sx,sy,base+1+(h-2)/2,g);
+      fan3(8.5,g,sx,sy,base+h-.4,'z',p.blade,p.frame); return g; }
+    const cu=M('#c07a45',{metalness:.8,roughness:.3});
+    for(const dx of [-1.4,-.5,.5,1.4]) cy(.32,h-1.5,cu,sx+dx,sy,base+(h-1.5)/2+.6,'z',g,10);
+    const fin=M('#b4bcc5',{metalness:.65,roughness:.35}), finH=h-4;
+    for(let i=0;i<26;i++) bx(5.4,.16,finH,fin,sx,sy-6+i*.46,base+3+finH/2,g);
+    bx(5.6,12.2,.4,M(p.frame||'#2a2e35'),sx,sy-.25,base+h-.6,g);
+    fan3(Math.min(12,finH+1),g,sx+3.4,sy-.25,base+3+finH/2,'x',p.blade,p.frame);
+    return g;
+  }
+  function buildRAM(p,L){
+    const g=new THREE.Group(), n=ramMods(), order=L.dimm.length===2?[0,1]:[1,3,0,2];
+    for(const i of order.slice(0,n)){ const x=L.dimm[i];
+      bx(.7,L.dimmL,3.3,M(p.tone||'#1c1e22',{metalness:.35}),x,L.dimmY,SO+2.05,g);
+      decal(L.dimmL*.8,1.3,tex(p.short||'',{bg:p.tone||'#1c1e22',fg:p.ink||'#e6e8eb',font:'700 48px "Chakra Petch", sans-serif'}),x+.36,L.dimmY,SO+2.1,[0,Math.PI/2,Math.PI/2],g);
+      const top=bx(.72,L.dimmL,.35,new THREE.MeshStandardMaterial({color:p.rgb?0xffffff:col(p.tone||'#1c1e22').offsetHSL(0,0,.08),roughness:.4}),x,L.dimmY,SO+3.85,g);
+      if(p.rgb) glows.push(top);
+    }
+    return g;
+  }
+  function buildM2(p,L){
+    const g=new THREE.Group(), [mx,my]=L.m2;
+    bx(8,2.2,.22,M('#1b4d36'),mx,my,SO+.3,g);
+    bx(5.6,1.8,.12,M(p.tone||'#141518'),mx+.9,my,SO+.47,g);
+    decal(5.2,1.4,tex(`${p.short||''} ${p.cap||''}`,{w:512,h:128,bg:p.tone||'#141518',fg:p.ink||'#f1f2f4',font:'700 56px "Chakra Petch", sans-serif'}),mx+.9,my,SO+.54,null,g);
+    return g;
+  }
+  function buildGPU(p,L){
+    const g=new THREE.Group(), len=(p.len||250)/10, x0=.6, cx=x0+len/2, y=L.pcieY, hh=11.5, zc=SO+.8+hh/2;
+    bx(len,4,hh,M(p.shroud||'#26282c',{metalness:.3}),cx,y-1.8,zc,g);
+    bx(len,.25,hh,M('#3a3d44',{metalness:.5}),cx,y+.3,zc,g);
+    bx(len,.6,.35,M(p.tone||'#76b900'),cx,y-1.6,zc+hh/2+.1,g);
+    decal(Math.min(10,len*.35),1.5,tex(p.short||'',{bg:p.shroud||'#26282c',fg:'#e6e8eb'}),x0+len-Math.min(10,len*.35)/2-1,y-1,zc+hh/2+.19,null,g);
+    bx(.3,4.6,12,M('#b8bec6',{metalness:.7}),.2,y-1.6,zc,g);
+    bx(8.6,.4,.4,M('#d4a94a',{metalness:.7}),1.5+4.3,y,SO+.6,g);
+    const n=p.fans||2, sp=len/n, fs=Math.min(9,sp-.6);
+    for(let i=0;i<n;i++) fan3(fs,g,x0+sp*(i+.5),y-3.9,zc,'y','#454b54','#121417');
+    bx(2.6,1,.9,M('#0d0f12'),x0+len-3,y-1.2,zc+hh/2+.5,g);   // power plug
+    g.userData.plug=new THREE.Vector3(x0+len-3,y-1.2,zc+hh/2+.9);
+    return g;
+  }
+  function psuDims(p){ return p&&p.pform==='SFX'?{w:12.5,h:6.35,d:10}:{w:15,h:8.6,d:14}; }
+  function buildPSU(p){
+    const g=new THREE.Group(), {w,h,d}=psuDims(p);
+    bx(w,h,d,M(p.body||'#1d1f22',{metalness:.3}),0,h/2,0,g);
+    cy(d*.4,.3,M('#101215'),-w*.12,h+.05,0,null,g,32);
+    for(const r of [d*.36,d*.27,d*.18]){const t=new THREE.Mesh(new THREE.TorusGeometry(r,.12,6,40),M('#4a5059'));t.rotation.x=Math.PI/2;t.position.set(-w*.12,h+.15,0);g.add(t);}
+    decal(w*.4,h*.45,tex(`${p.watt} W`,{w:256,h:128,bg:p.tone||'#e7b84a',fg:p.ink||'#1a1a1a',font:'700 70px "Chakra Petch", sans-serif'}),w*.25,h*.5,d/2+.02,null,g);
+    bx(1.4,h*.5,1.4,M('#111215'),w/2+.1,h*.6,-d*.25,g);
+    g.userData.sock=new THREE.Vector3(w/2+.6,h*.6,-d*.25); g.userData.dims={w,h,d};
+    return g;
+  }
+  function buildAdapter(watt){
+    const g=new THREE.Group();
+    bx(13,3.2,6,M('#1a1b1e'),0,1.6,0,g);
+    decal(6,2,tex(`${watt} W`,{w:256,h:96,bg:'#1a1b1e',fg:'#d6dbe1',font:'700 60px "Chakra Petch", sans-serif'}),0,3.22,0,[-Math.PI/2,0,0],g);
+    return g;
+  }
+  function buildDrive(p){
+    const g=new THREE.Group();
+    if(p.form==='35'){ bx(10.2,2.6,14.7,M('#a7adb5',{metalness:.5}),0,1.3,0,g); bx(9,.1,11,M(p.tone||'#1b1c1f'),0,2.65,-.6,g);
+      decal(8.6,4,tex(p.cap||'',{w:256,h:128,bg:p.tone||'#1b1c1f',fg:p.ink||'#fff',font:'700 66px "Chakra Petch", sans-serif'}),0,2.72,0,[-Math.PI/2,0,0],g);
+      decal(8.6,1.6,tex(p.short||'',{w:512,h:96,bg:p.tone||'#1b1c1f',fg:p.ink||'#fff',font:'700 46px "Chakra Petch", sans-serif'}),0,2.72,-4,[-Math.PI/2,0,0],g);
+      g.userData.dims={w:10.2,d:14.7}; }
+    else { bx(7,.7,10,M(p.tone||'#1b1c1f',{metalness:.3}),0,.35,0,g);
+      decal(6,3,tex(`${p.short||''} · ${p.cap||''}`,{w:512,h:256,bg:p.tone||'#1b1c1f',fg:p.ink||'#f1f2f4',font:'700 54px "Chakra Petch", sans-serif'}),0,.72,0,[-Math.PI/2,0,0],g);
+      g.userData.dims={w:7,d:10}; }
+    return g;
+  }
+  function buildRadiator(p){
+    const g=new THREE.Group(), len=(p.aio||240)/10+2;
+    bx(len,2.7,12.2,M('#1b1d21',{metalness:.3}),0,1.35,0,g);
+    for(let i=0;i<Math.round((p.aio||240)/120);i++) fan3(11.6,g,-len/2+1+5.9+i*12,3.4,0,'y',p.blade,p.frame);
+    g.userData.port=new THREE.Vector3(-len/2+.5,1.6,-4); return g;
+  }
+  function caseDims(c){
+    // real outer size from the maker's spec (height, width, depth in mm). The case lies on its side on the mat:
+    // depth runs along x, height along the board's long axis, width is how tall it stands. Cubes with a flat board lie normally.
+    if(c.dim){ const [h,w,d]=c.dim.map(v=>v/10); if(c.psuBuilt) return {D:w,L:d,T:h}; if(c.flat) return {D:d,L:w,T:h}; return {D:d,L:h,T:w}; }
+    if(c.psuBuilt) return {D:19.7,L:22,T:6.3};
+    if(c.forms.includes('ATX')) return {D:42,L:50,T:21};
+    if(c.forms.includes('mATX')) return {D:38,L:44,T:20};
+    return {D:35.6,L:21,T:19.5};
+  }
+  /* PSU shroud: a covered "basement" over the PSU at the tower's bottom end, as most modern cases have */
+  function buildShroud(sh,c){
+    const g=new THREE.Group(), m=M('#'+new THREE.Color(c.body||'#18191b').lerp(new THREE.Color('#ffffff'),.14).getHexString(),{metalness:.35,roughness:.5}), t=.35, w=sh.x1-sh.xs, d=sh.zb-sh.za;
+    bx(w,t,d,m,sh.xs+w/2,sh.h,sh.za+d/2,g);                 // cover
+    bx(t,sh.h,d,m,sh.xs,sh.h/2,sh.za+d/2,g);                 // wall towards the board
+    bx(w,sh.h,t,m,sh.xs+w/2,sh.h/2,sh.zb,g);                 // wall towards the front
+    const vent=M('#0b0c0e'); for(let i=0;i<5;i++) bx(w*.55,.05,.35,vent,sh.xs+w*.5,sh.h+t/2+.01,sh.za+d*.25+i*d*.11,g); // vent slots
+    bx(.06,1.2,d*.5,M('#3a3f47'),sh.xs-.2,sh.h*.55,sh.za+d*.45,g);                    // cable grommet strip
+    return g; }
+  function buildCase(c){
+    const g=new THREE.Group(), {D,L,T}=caseDims(c), body=M(c.body||'#18191b',{metalness:.35,roughness:.5}), t=.6;
+    bx(D,t,L,body,D/2,t/2,L/2,g);                       // motherboard tray (the case lies on its side)
+    bx(t,T,L,body,t/2,T/2,L/2,g);                       // rear wall
+    bx(D,T,t,body,D/2,T/2,t/2,g);                       // top of the tower
+    bx(D,T,t,body,D/2,T/2,L-t/2,g);                     // bottom of the tower
+    const front=M(c.front||'#2a2c30'); bx(1,T,L,front,D-.5,T/2,L/2,g);
+    if(c.style==='wood') for(let i=0;i<5;i++) bx(1.1,T*.17,L-2,M('#8a5a35'),D-.45,T*.1+i*T*.2,L/2,g);
+    if(c.style==='glass') bx(1.05,T-1,L-1,new THREE.MeshStandardMaterial({color:col(c.front),transparent:true,opacity:.45,roughness:.1}),D-.4,T/2,L/2,g);
+    for(const [x,y] of [[3,2],[D-3,2],[3,T-2],[D-3,T-2]]) bx(3,2,.6,M('#0e0f11'),x,y,L+.3,g); // feet, on the bottom of the tower
+    bx(.7,T*.55,L*.36,M('#101215'),.35,T*.45,L*.22,g);  // rear I/O opening
+    if(!c.psuBuilt){ const fs=Math.min(12,T-2,L/4); fan3(fs,g,1.4,T/2,fs/2+3,'x','#343a44');
+      const nf=Math.max(1,Math.min(3,Math.floor((L-6)/(fs+1)))); for(let i=0;i<nf;i++) fan3(fs,g,D-1.6,T/2,4+fs/2+i*(fs+1),'x','#343a44'); }
+    decal(Math.min(12,D*.4),1.6,tex(c.short||'',{bg:c.body||'#18191b',fg:'#c9ced5',font:'700 50px "Chakra Petch", sans-serif'}),D/2,T/2,L+.02,null,g);
+    const lid=new THREE.Mesh(new THREE.BoxGeometry(D,.3,L),new THREE.MeshStandardMaterial({color:0x9fc3da,transparent:true,opacity:.2,roughness:.05,metalness:.1}));
+    lid.position.set(D/2,T+.15,L/2); lid.visible=false; g.add(lid); g.userData.lid=lid; g.userData.dims={D,L,T};
+    const edge=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(D,T,L)),new THREE.LineBasicMaterial({color:0xbfe0ff,transparent:true,opacity:.85}));
+    edge.position.set(D/2,T/2,L/2); g.add(edge); g.userData.edge=edge;
+    return g;
+  }
+
+  // the chosen case is drawn as see-through glass around the build; 'Náhled skříně' shows it solid
+  function caseLook(g,solid){
+    g.traverse(o=>{ if(!o.isMesh||o===g.userData.lid) return; const m=o.material;
+      if(m.userData.op===undefined) m.userData.op={t:m.transparent,o:m.opacity};
+      m.transparent=solid?m.userData.op.t:true; m.opacity=solid?m.userData.op.o:.1; m.depthWrite=solid; o.castShadow=solid; m.needsUpdate=true; });
+    if(g.userData.edge) g.userData.edge.visible=!solid;
+  }
+  /* ---- placed objects and their animation ---- */
+  const rig=new THREE.Group(); S.add(rig); // the whole build; turned upright for the tower preview
+  const boardFrame=new THREE.Group(); boardFrame.rotation.x=-Math.PI/2; rig.add(boardFrame);
+  const objs={}; // key -> {g,key,home(world or board),parent}
+  const anims=[];
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function animate(g,from,to,{dur=600,arc=0,ease='back',done}={}){
+    const a={g,from:from.clone(),to:to.clone(),t0:performance.now(),dur:reduce?1:dur,arc,ease,done}; anims.push(a); g.position.copy(from); return a; }
+  const E={back:t=>{const c1=1.4,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2);},inout:t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2,out:t=>1-Math.pow(1-t,3)};
+
+  let assembled=false, lastSig='', lastCase=null;
+  const placeholders=new THREE.Group(); rig.add(placeholders);
+  function dashedRect(w,d,x,z,text){
+    const pts=[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2],[-w/2,-d/2]].map(([a,b])=>new THREE.Vector3(x+a,.08,z+b));
+    const ln=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineDashedMaterial({color:0xffffff,dashSize:1.2,gapSize:.8,transparent:true,opacity:.75}));
+    ln.computeLineDistances(); placeholders.add(ln);
+    if(text){ const m=decal(Math.min(w*.8,16),Math.min(w*.8,16)/5,tex(text,{bg:null,fg:'rgba(60,80,110,.85)',font:'600 60px "IBM Plex Sans", sans-serif'}),x,.1,z,[-Math.PI/2,0,0],placeholders,true); m.castShadow=false; }
+  }
+
+  function layout(){
+    const L=lay(), c=build.case&&BY[build.case], psu=build.psu&&BY[build.psu];
+    const pd=psuDims(psu), out={L};
+    out.bench={bx:0,bz:L.H/2};
+    out.psuBench=new THREE.Vector3(L.W+1.5+pd.w/2,0,-L.H/2+pd.d/2);
+    out.driveBench=new THREE.Vector3(L.W+1.5+5.5,0,L.H/2-7.5);
+    out.radBench=new THREE.Vector3(14,0,L.H/2+8);
+    if(c){ const {D,L:CL,T}=caseDims(c);
+      // the case is wrapped around the bench layout without moving anything: its longer side runs left-right like the mat,
+      // so the view keeps the same direction with or without a case (board left, PSU right of it)
+      const X=Math.max(D,CL), Z=Math.min(D,CL), rot=CL>=D?Math.PI/2:0, mz=Math.max(.3,Math.min(2,(Z-L.H)/2));
+      const cx0=-1.6, cz0=-L.H/2-mz;
+      out.caseAt=new THREE.Vector3(cx0,0,cz0);                                   // footprint corner (min x, min z)
+      out.casePos=rot?new THREE.Vector3(cx0,0,cz0+D):out.caseAt.clone();         // where the case model's origin goes
+      out.cd={D,L:CL,T,X,Z,rot};
+      out.inCase={bx:0,bz:L.H/2,y:.6};
+      const px=Math.min(out.psuBench.x,cx0+X-1-pd.w/2);
+      out.psuCase=new THREE.Vector3(px,.6,out.psuBench.z);
+      out.driveCase=out.driveBench.clone().setY(.6); out.driveCase.x=Math.min(out.driveCase.x,cx0+X-6);
+      out.radCase=new THREE.Vector3(cx0+X/2,T-3.2,cz0+3);
+      // where the case keeps its PSU: 'bottom' = at the tower's bottom end (right on the mat) under a shroud,
+      // 'rear' = dual-chamber / cube: hidden behind or under the motherboard tray
+      out.psuPos=c.psuBuilt?'ext':(c.psuPos||'bottom');
+      if(out.psuPos==='bottom'&&c.shroud!==false&&psu){ const xs=L.W+.8, x1=cx0+X-.6, za=cz0+.6, zb=Math.min(cz0+Z-.6,out.psuCase.z+pd.d/2+1.2);
+        if(x1-xs>pd.w*.8) out.shroud={xs,x1,za,zb,h:.6+pd.h+1.6}; } }
+    return out;
+  }
+  function complete(){ return build.case&&build.mb&&build.cpu&&build.ram&&build.ssd&&(build.psu||builtPsu())&&(build.cooler||boxCool())&&(build.gpu||noGpuCase()); }
+
+  function keyOf(cat,Lname){ const id=build[cat]; if(!id) return '';
+    const p=BY[id];
+    if(cat==='ram') return id+'|'+ramMods()+'|'+Lname;
+    if(cat==='ssd') return id+'|'+((p.form||'m2')==='m2'?Lname:'w');
+    if(['cpu','cooler','gpu','mb'].includes(cat)) return id+'|'+Lname;
+    return id; }
+
+  function sync(){
+    const Lname=Object.keys(LAYS).find(k=>LAYS[k]===lay());
+    const P=layout(), L=P.L;
+    if(!build.case) assembled=false; // 'assembled' = the case is shown solid
+    else if(build.case!==lastCase) assembled=true; // a newly chosen case starts solid, the button makes it see-through
+    lastCase=build.case||null;
+    const need={
+      mb:keyOf('mb',Lname), cpu:keyOf('cpu',Lname), ram:keyOf('ram',Lname), gpu:keyOf('gpu',Lname), psu:keyOf('psu'), case:keyOf('case'),
+      cooler:build.cooler?keyOf('cooler',Lname):(boxCool()&&build.cpu?'box|'+build.cpu+'|'+Lname:''),
+      m2:build.ssd&&(BY[build.ssd].form||'m2')==='m2'?keyOf('ssd',Lname):'',
+      drive:build.ssd&&(BY[build.ssd].form||'m2')!=='m2'?build.ssd:'',
+      rad:build.cooler&&BY[build.cooler].aio?build.cooler:'',
+      adapter:build.case&&BY[build.case].psuBuilt&&!build.psu?build.case:'',
+      shroud:P.shroud?[build.case,Lname,build.psu].join('|'):''
+    };
+    const boardParts={mb:1,cpu:1,ram:1,gpu:1,cooler:1,m2:1};
+    for(const k of Object.keys(need)){
+      const cur=objs[k];
+      if(cur&&cur.key===need[k]) continue;
+      const wasId=cur&&cur.key.split('|')[0], nowId=need[k].split('|')[0];
+      if(cur){ dispose(cur.g); delete objs[k]; }
+      if(!need[k]) continue;
+      let g;
+      const p=BY[nowId];
+      if(k==='mb') g=buildMB(p,L); else if(k==='cpu') g=buildCPU(p,L); else if(k==='ram') g=buildRAM(p,L);
+      else if(k==='gpu') g=buildGPU(p,L); else if(k==='m2') g=buildM2(p,L);
+      else if(k==='cooler') g=build.cooler?buildCooler(BY[build.cooler],L):stockCooler(BY[build.cpu],L);
+      else if(k==='psu') g=buildPSU(p); else if(k==='case') g=buildCase(p); else if(k==='drive') g=buildDrive(p);
+      else if(k==='rad') g=buildRadiator(p); else if(k==='adapter') g=buildAdapter(p.psuBuilt); else if(k==='shroud') g=buildShroud(P.shroud,BY[build.case]);
+      const cat=k==='m2'||k==='drive'?'ssd':k==='rad'?'cooler':k==='adapter'||k==='shroud'?'case':k; tag(g,cat);
+      const fresh=wasId!==nowId;
+      if(boardParts[k]){ boardFrame.add(g); if(fresh) animate(g,new THREE.Vector3(0,0,22),new THREE.Vector3()); }
+      else { rig.add(g); g.userData.fresh=fresh; }
+      objs[k]={g,key:need[k],cat};
+    }
+    // world-placed objects
+    const inCase=!!(P.caseAt);
+    const place=(k,pos,rotY=0,rot)=>{ const o=objs[k]; if(!o) return; const g=o.g; if(rot) g.rotation.set(rot[0],rot[1],rot[2]); else g.rotation.set(0,rotY,0);
+      if(g.userData.fresh){ g.userData.fresh=false; animate(g,pos.clone().add(new THREE.Vector3(0,24,0)),pos); }
+      else if(!g.position.equals(pos)&&!anims.some(a=>a.g===g)) animate(g,g.position,pos,{dur:700,arc:8,ease:'inout'}); };
+    if(objs.case) place('case',P.casePos,P.cd.rot);
+    if(objs.psu){ place('psu',inCase?P.psuCase:P.psuBench); objs.psu.g.visible=!(inCase&&P.psuPos==='rear'); } // rear chamber: PSU hidden behind the tray
+    if(objs.shroud) place('shroud',new THREE.Vector3());
+    if(objs.adapter) place('adapter',new THREE.Vector3(P.caseAt.x+P.cd.X/2,0,P.caseAt.z+P.cd.Z+6));
+    if(objs.drive) place('drive',P.driveCase||P.driveBench);
+    if(objs.rad) place('rad',P.radCase||P.radBench);
+    // board frame
+    const bTo=P.inCase?new THREE.Vector3(P.inCase.bx,P.inCase.y,P.inCase.bz):new THREE.Vector3(P.bench.bx,0,P.bench.bz);
+    if(!boardFrame.userData.placed){ boardFrame.position.copy(bTo); boardFrame.userData.placed=true; }
+    else if(!boardFrame.position.equals(bTo)&&!anims.some(a=>a.g===boardFrame)) animate(boardFrame,boardFrame.position,bTo,{dur:700,arc:4,ease:'inout'});
+    if(objs.case){ const lid=objs.case.g.userData.lid;
+      if(assembled&&!lid.visible){ lid.visible=true; animate(lid,new THREE.Vector3(lid.position.x,lid.position.y+20,lid.position.z),lid.position.clone().setY(objs.case.g.userData.dims.T+.15),{dur:600,ease:'out'}); }
+      if(!assembled) lid.visible=false; caseLook(objs.case.g,assembled); if(objs.shroud) caseLook(objs.shroud.g,assembled); }
+    // placeholders for missing big parts
+    placeholders.children.slice().forEach(o=>{placeholders.remove(o); o.geometry.dispose(); if(o.material.map)o.material.map.dispose(); o.material.dispose();});
+    if(!build.mb) dashedRect(L.W,L.H,L.W/2,0,'Základní deska');
+    if(!build.psu&&!builtPsu()) { const d=psuDims(null); dashedRect(d.w,d.d,P.psuBench.x,P.psuBench.z,'Zdroj'); }
+    cablesDirty=true;
+    $('b3Asm').hidden=!build.case; $('b3Asm').textContent=assembled?'Zprůhlednit skříň':'Neprůhledná skříň';
+    const canStand=false; if(!canStand) tower=false; // tower preview parked for now (button stays hidden)
+    $('b3Tower').hidden=!canStand; $('b3Tower').textContent=tower?'Položit skříň':'Postavit skříň';
+    towerPivot=P.caseAt?P.caseAt.x+P.cd.X:0;
+    frame();
+  }
+
+  /* ---- cables (rebuilt once things stop moving) ---- */
+  let cablesDirty=true; const cableObjs=[];
+  const cableMat=M('#111215',{roughness:.85}), tubeMat=M('#1c1e22',{roughness:.6});
+  function tube(pts,r,m,seg=60,rad=8){ const g=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),seg,r,rad,false),m); g.castShadow=true; rig.add(g); cableObjs.push(g); }
+  const plugMat=M('#17191d',{roughness:.55}), wireMat=M('#1d1f24',{roughness:.5,metalness:.15});
+  function plugBox(w,h,d,x,y,z){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),plugMat); m.position.set(x,y,z); m.castShadow=true; boardFrame.add(m); cableObjs.push(m); return m; }
+  /* a real-looking power plug pushed into a board header: housing, latch, one wire per pin fanning into a sleeved bundle */
+  function boardPlug(cx,cy,topZ,cols,rows,pitch,wp,bundleH){
+    const w=cols*pitch+.25, h=rows*pitch+.25, hz=1.1;
+    plugBox(w,h,hz,cx,cy,topZ+hz/2);                                  // housing sits on the header
+    plugBox(.28,Math.min(.9,h*.5),hz*.9,cx+w/2+.12,cy,topZ+hz*.5);    // latch clip
+    plugBox(w*.7,h-.1,.12,cx,cy,topZ+hz+.06);                         // wire-entry rim
+    const B=new THREE.Vector3(cx,cy,topZ+hz+bundleH), top=topZ+hz+.1;
+    for(let i=0;i<cols;i++) for(let j=0;j<rows;j++){
+      const x=cx+(i-(cols-1)/2)*pitch, y=cy+(j-(rows-1)/2)*pitch;
+      tube([wp(new THREE.Vector3(x,y,top)),wp(new THREE.Vector3(x,y,top+.8)),wp(new THREE.Vector3(cx+(x-cx)*.35,cy+(y-cy)*.35,top+bundleH*.75)),wp(B.clone().add(new THREE.Vector3((x-cx)*.12,(y-cy)*.12,0)))],.085,wireMat,12,5);
+    }
+    return wp(B);
+  }
+  function rebuildCables(){
+    cableObjs.splice(0).forEach(o=>{ if(o.parent) o.parent.remove(o); o.geometry.dispose();});
+    S.updateMatrixWorld(true);
+    const toRig=(o,v)=>rig.worldToLocal(o.localToWorld(v.clone())), L=lay(), wp=v=>toRig(boardFrame,v);
+    const psuO=objs.psu, P=layout(), boxed=!!P.caseAt;
+    // inside a case every cable stays under the side panel: heights are capped just below the case's inner height
+    const cap=boxed?P.cd.T-1.6:1e9, Y=y=>Math.min(y,cap), up=v=>{ const o=v.clone(); o.y=Y(o.y+8); return o; };
+    // in a case the PSU stands on its side; its modular sockets face the board, so cables leave towards the inside
+    const sockAt=dz=>{ if(boxed&&P.psuPos==='rear') return new THREE.Vector3(P.L.W+1.2,.8,-P.L.H/4+dz); // grommet next to the board
+      if(!boxed) return toRig(psuO.g,psuO.g.userData.sock.clone().add(new THREE.Vector3(0,0,dz)));
+      const c=psuO.g.position, pd=psuO.g.userData.dims; return new THREE.Vector3(c.x-pd.w/2-.3,.6+pd.h*.6,c.z-pd.d*.2+dz); }; // side facing the board
+    if(psuO&&objs.mb){ const s=sockAt(0);
+      const a=boardPlug(L.a24[0],L.a24[1],SO+1.05,2,12,.42,wp,2.6);     // 24-pin ATX plug
+      const e=boardPlug(L.eps[0],L.eps[1],SO+.85,4,2,.34,wp,2.2);       // 8-pin CPU (EPS) plug
+      if(boxed){ const out=s.clone().add(new THREE.Vector3(-2.5,0,0)), s2=sockAt(-1.6), out2=s2.clone().add(new THREE.Vector3(-2.5,0,0));
+        tube([s,out,new THREE.Vector3((out.x+a.x)/2,Y(a.y+3),(out.z+a.z)/2),a.clone().setY(Y(a.y+2)),a],.55,cableMat);
+        tube([s2,out2,new THREE.Vector3((out2.x+e.x)/2,Y(e.y+4),(out2.z+e.z)/2),e.clone().setY(Y(e.y+2)),e],.38,cableMat); }
+      else {
+      tube([s,up(s),up(a).setY(Math.max(s.y,a.y)+4),a.clone().add(new THREE.Vector3(0,1.2,0)),a],.55,cableMat);
+      tube([s.clone().add(new THREE.Vector3(0,0,-1)),up(s),up(e).setY(Math.max(s.y,e.y)+6),e.clone().add(new THREE.Vector3(0,1.2,0)),e],.38,cableMat); } }
+    if(psuO&&objs.gpu){ const s=sockAt(boxed?1.6:1.2), gp=toRig(objs.gpu.g,objs.gpu.g.userData.plug);
+      if(boxed) tube([s,s.clone().add(new THREE.Vector3(-2.5,0,0)),new THREE.Vector3((s.x+gp.x)/2,Y(gp.y+3),(s.z+gp.z)/2),gp.clone().setY(Y(gp.y+1.5)),gp],.42,cableMat);
+      else tube([s,up(s),gp.clone().add(new THREE.Vector3(0,6,0)),gp],.42,cableMat); }
+    if(objs.rad&&objs.cooler&&build.cooler&&BY[build.cooler].aio){ const [sx,sy]=L.sock, pump=wp(new THREE.Vector3(sx+2.6,sy,SO+3)), port=toRig(objs.rad.g,objs.rad.g.userData.port);
+      for(const dz of [-.8,.8]){ const q=pump.clone().add(new THREE.Vector3(4,3,dz)), w=port.clone().add(new THREE.Vector3(-3,4,dz*2)); q.y=Y(q.y); w.y=Y(w.y); tube([pump.clone().add(new THREE.Vector3(0,0,dz)),q,w,port.clone().add(new THREE.Vector3(0,0,dz*2))],.55,tubeMat); } }
+    cablesDirty=false;
+  }
+
+  /* ---- camera framing ---- */
+  const box3=new THREE.Box3();
+  function frame(){
+    box3.makeEmpty();
+    const add=o=>{ if(o) box3.expandByObject(o); };
+    S.updateMatrixWorld(true);
+    // footprint of everything on the bench, from the layout (not the animated positions)
+    const P=layout(), L=P.L, r={x0:0,x1:L.W,z0:-L.H/2,z1:L.H/2}, grow=(a,b,c,d)=>{r.x0=Math.min(r.x0,a);r.x1=Math.max(r.x1,b);r.z0=Math.min(r.z0,c);r.z1=Math.max(r.z1,d);};
+    if(build.gpu) grow(0,.6+BY[build.gpu].len/10,-L.H/2,L.H/2);
+    const pd=psuDims(build.psu&&BY[build.psu]);
+    if(!P.caseAt||(!build.psu&&!builtPsu())) grow(P.psuBench.x-pd.w/2,P.psuBench.x+pd.w/2,P.psuBench.z-pd.d/2,P.psuBench.z+pd.d/2);
+    if(build.ssd&&(BY[build.ssd].form||'m2')!=='m2') grow(P.driveBench.x-5.2,P.driveBench.x+5.2,P.driveBench.z-7.4,P.driveBench.z+7.4);
+    if(build.cooler&&BY[build.cooler].aio){ const h=(BY[build.cooler].aio/10+2)/2; grow(P.radBench.x-h,P.radBench.x+h,P.radBench.z-6.2,P.radBench.z+6.2); }
+    if(P.caseAt){ grow(P.caseAt.x,P.caseAt.x+P.cd.X,P.caseAt.z,P.caseAt.z+P.cd.Z); if(objs.adapter) grow(P.caseAt.x,P.caseAt.x+P.cd.X,P.caseAt.z,P.caseAt.z+P.cd.Z+10); }
+    let top=Math.max(build.case?(P.cd?P.cd.T:0):0, build.cooler||build.gpu?17:build.mb?4:.5);
+    if(tower&&P.caseAt){ // standing tower: footprint is the case's width × depth, height is the case's length
+      const x1=P.caseAt.x+P.cd.X; r.x0=x1; r.x1=x1+P.cd.T; r.z0=P.caseAt.z; r.z1=P.caseAt.z+P.cd.Z; top=P.cd.X; }
+    const m=2.5; setMat(r.x0-m,r.x1+m,r.z0-m,r.z1+m);
+    box3.set(new THREE.Vector3(r.x0-m,-1.2,r.z0-m),new THREE.Vector3(r.x1+m,top,r.z1+m));
+    box3.getCenter(want.c=new THREE.Vector3()); want.orbH=0; want.box=box3.clone(); fit();
+  }
+  function measure(th,centre,ph=phi){ // projected outline of the bench box for camera angle th
+    const w=host.clientWidth||1, h=host.clientHeight||1, a=w/h, b=want.box;
+    const dir=new THREE.Vector3(Math.sin(th)*Math.cos(ph),Math.sin(ph),Math.cos(th)*Math.cos(ph));
+    const right=new THREE.Vector3(0,1,0).cross(dir).normalize(), upv=dir.clone().cross(right).normalize();
+    let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9; for(let i=0;i<8;i++){ const p=new THREE.Vector3(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,i&4?b.max.z:b.min.z).sub(want.c);
+      const u=p.dot(right), v=p.dot(upv); x0=Math.min(x0,u); x1=Math.max(x1,u); y0=Math.min(y0,v); y1=Math.max(y1,v); }
+    if(centre) return {t:want.c.clone(),h:Math.max(2*Math.max(-y0,y1),2*Math.max(-x0,x1)/a)*1.06+1};
+    return {t:want.c.clone().addScaledVector(right,(x0+x1)/2).addScaledVector(upv,(y0+y1)/2),h:Math.max(y1-y0,(x1-x0)/a)*1.06+1};
+  }
+  let orbit=false; // user is turning the camera by hand
+  let tower=false, towerPivot=0, towerK=0; // tower preview: the case tips up onto its bottom end
+  function fit(){
+    if(!want.box) return;
+    if(orbit){ // turn around the default view's centre at the default size: nothing jumps, shrinks or stretches
+      const m=measure(ISO_T,false,ISO_P); want.t.copy(m.t); want.h=m.h; return; }
+    // centre the projected outline (not the 3D box centre) in the window, so zooming stays centred
+    const m=measure(theta,false); want.t.copy(m.t); want.h=m.h;
+  }
+  function resetView(){ orbit=false; theta=ISO_T; phi=ISO_P; zoomSet(ZOOM0); fit(); }
+  function placeCam(){
+    const w=host.clientWidth||1, h=host.clientHeight||1, a=w/h, vh=view.h/zoom;
+    cam.left=-vh*a/2; cam.right=vh*a/2; cam.top=vh/2; cam.bottom=-vh/2; cam.updateProjectionMatrix();
+    const r=200; cam.position.set(view.t.x+Math.sin(theta)*Math.cos(phi)*r, view.t.y+Math.sin(phi)*r, view.t.z+Math.cos(theta)*Math.cos(phi)*r); cam.lookAt(view.t);
+    sun.target.position.copy(view.t); sun.position.copy(view.t).add(new THREE.Vector3(40,110,70));
+  }
+  function resize(){ const w=host.clientWidth, h=host.clientHeight; if(!w||!h) return; R.setSize(w,h,false); fit(); }
+  new ResizeObserver(resize).observe(host);
+
+  /* ---- interaction: rotate, zoom, click a part, drag a part out ---- */
+  const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+  function pick(e){ const r=canvas.getBoundingClientRect(); ndc.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); ray.setFromCamera(ndc,cam);
+    const list=[]; for(const o of Object.values(objs)) o.g.traverse(m=>{ if(m.isMesh&&m.visible&&m!==(objs.case&&objs.case.g.userData.lid)) list.push(m); });
+    const hits=ray.intersectObjects(list,false); if(!hits.length) return null;
+    const inner=!assembled&&hits.find(h=>h.object.userData.cat!=='case'); // see-through case: grab what is inside it
+    return (inner||hits[0]).object.userData.cat; }
+  const ground=new THREE.Plane(new THREE.Vector3(0,1,0),0), gp=new THREE.Vector3();
+  function offMat(e){ const r=canvas.getBoundingClientRect();
+    if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) return true;
+    ndc.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1); ray.setFromCamera(ndc,cam);
+    if(!ray.ray.intersectPlane(ground,gp)) return true;
+    return gp.x<matRect.x0||gp.x>matRect.x1||gp.z<matRect.z0||gp.z>matRect.z1; }
+  let flashT=null;
+  function flash(cat){ const gs=Object.values(objs).filter(o=>o.cat===cat).map(o=>o.g);
+    gs.forEach(g=>g.traverse(m=>{ if(m.isMesh&&m.material.emissive&&!glows.includes(m)){ m.userData.em=m.userData.em||m.material.emissive.clone(); m.material.emissive.setHex(0x2a4a8a); } }));
+    clearTimeout(flashT); flashT=setTimeout(()=>gs.forEach(g=>g.traverse(m=>{ if(m.isMesh&&m.userData.em) m.material.emissive.copy(m.userData.em); })),700); }
+  let drag=null;
+  canvas.addEventListener('pointerdown',e=>{ if(e.button>0) return; const cat=pick(e);
+    drag={x:e.clientX,y:e.clientY,t:theta,p:phi,cat,id:cat&&cat==='cooler'&&!build.cooler?(build.cpu||null):(cat&&build[cat]) /* boxed cooler: dragging it takes the CPU (with its cooler) out */,moved:false,ghost:null}; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener('pointermove',e=>{
+    if(!drag){ const c=pick(e); canvas.style.cursor='grab'; return; }
+    const dx=e.clientX-drag.x, dy=e.clientY-drag.y; if(!drag.moved&&Math.hypot(dx,dy)>6) drag.moved=true; if(!drag.moved) return;
+    if(drag.id){ // pulling a part off the bench
+      if(!drag.ghost){ const g=document.createElement('div'); g.className='drag-ghost'; g.style.width='150px'; g.style.height='110px'; g.innerHTML=thumb(BY[drag.id])+'<span class="tag">Pustit = vyjmout</span>'; document.body.appendChild(g); drag.ghost=g; document.body.classList.add('dragging-part'); }
+      drag.ghost.style.transform=`translate(${e.clientX-75}px,${e.clientY-55}px)`;
+      const out=offMat(e); drag.ghost.classList.toggle('out',out); drag.out=out; return; }
+    // free orbit in all directions around a fixed pivot (size locked, so the mat never stretches)
+    zreset.disabled=false; theta=drag.t-dx*.008; phi=THREE.MathUtils.clamp(drag.p+dy*.006,THREE.MathUtils.degToRad(4),THREE.MathUtils.degToRad(89)); orbit=true; canvas.style.cursor='grabbing'; fit(); });
+  function endDrag(e){ const d=drag; drag=null; if(!d) return;
+    if(d.ghost){ d.ghost.remove(); document.body.classList.remove('dragging-part'); if(d.out&&e.type==='pointerup') remove(d.id); return; }
+    if(!d.moved&&e.type==='pointerup'&&d.cat){ flash(d.cat); setTab(d.cat==='case'?'case':d.cat,true); } }
+  canvas.addEventListener('pointerup',endDrag); canvas.addEventListener('pointercancel',endDrag);
+  canvas.addEventListener('wheel',e=>{ e.preventDefault(); zoomSet(zoom*Math.exp(-THREE.MathUtils.clamp(e.deltaY,-60,60)*.0025)); /* gentle, proportional to the scroll */ },{passive:false});
+  canvas.addEventListener('dblclick',()=>resetView());
+  $('b3Asm').addEventListener('click',()=>{ assembled=!assembled; lastSig=JSON.stringify([build,ramMods()]); sync(); });
+  $('b3Tower').addEventListener('click',()=>{ tower=!tower; orbit=false; sync(); });
+
+  /* ---- loop ---- */
+  let last=performance.now();
+  function loop(now){
+    const dt=Math.min(.05,(now-last)/1000); last=now;
+    for(let i=anims.length-1;i>=0;i--){ const a=anims[i]; const t=Math.max(0,Math.min(1,(now-a.t0)/a.dur)); if(now<a.t0) continue;
+      const k=E[a.ease](t); a.g.position.lerpVectors(a.from,a.to,k); if(a.arc) a.g.position.y+=Math.sin(Math.PI*t)*a.arc*(a.g===boardFrame?1:1);
+      if(t>=1){ anims.splice(i,1); if(a.done) a.done(); cablesDirty=true; } }
+    const moving=anims.length>0;
+    cableObjs.forEach(o=>o.visible=!moving);
+    if(cablesDirty&&!moving) rebuildCables();
+    view.t.lerp(want.t,reduce?1:.12); view.h+=(want.h-view.h)*(reduce?1:.12); placeCam();
+    const on=powerOn;
+    { const k=tower?1:0; if(Math.abs(towerK-k)>.001){ towerK+=(k-towerK)*(reduce?1:.08); if(Math.abs(towerK-k)<.002) towerK=k;
+        const a=-Math.PI/2*E.inout(towerK); rig.rotation.z=a; rig.position.set(towerPivot-towerPivot*Math.cos(a),-towerPivot*Math.sin(a),0);
+        if(towerK===k) cablesDirty=true; } }
+    if(on&&!reduce) for(const s of spinners) s.rotation.z+=dt*14;
+    glows.forEach((m,i)=>{ const c=new THREE.Color().setHSL(((now/3000)+i*.18)%1,.85,.55); m.material.color.copy(on?c:new THREE.Color(0x3a3d42)); m.material.emissive=on?c.clone().multiplyScalar(.6):new THREE.Color(0); });
+    R.render(S,cam); requestAnimationFrame(loop);
+  }
+  resize(); requestAnimationFrame(loop);
+  return {sync,ok:true};
+})();
+
+/* UX prototype: tiles open the catalog drawer, picking a part closes it */
+document.addEventListener('click',e=>{ // capture phase: runs before the catalog's own click handler re-renders the tiles
+  const t=e.target.closest('.tray .tab'); if(t){ const c=t.dataset.tab; (drawerOpen&&tab===c)?closeDrawer():openDrawer(c); }
+},true);
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-act="add"]'); if(a&&drawerOpen){ const p=BY[a.dataset.id]; if(p&&build[p.cat]===p.id) setTimeout(closeDrawer,150); }
+});
+$('dClose').addEventListener('click',closeDrawer);
+function deskDrawer(){ if(DESK.matches) openDrawer(tab); else { drawerOpen=false; $('drawer').classList.remove('open'); renderTabs(); } }
+DESK.addEventListener('change',deskDrawer);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&drawerOpen) closeDrawer(); });
+
+render(); deskDrawer();
+})();
+</script>
+</body>
+</html>
